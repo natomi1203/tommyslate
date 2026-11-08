@@ -13,6 +13,35 @@ env:
   RUST_VERSION: "1.99.0"
 
 jobs:
+  msrv:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check minimum supported Rust
+        run: |
+          rustup toolchain install 1.85.0 --profile minimal
+          cargo +1.85.0 check --locked --all-targets
+
+  dependency-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Audit locked Rust and Python dependencies
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          python -m pip install --disable-pip-version-check uv==0.13.1 pip-audit==2.10.1
+          cargo +"$RUST_VERSION" install cargo-audit --version 0.22.2 --locked
+          cargo +"$RUST_VERSION" audit
+          uv export --frozen --all-groups --no-emit-project --format requirements-txt --output-file "$RUNNER_TEMP/requirements.txt"
+          python -m pip_audit -r "$RUNNER_TEMP/requirements.txt"
+
   verify:
     runs-on: ubuntu-24.04
     steps:
