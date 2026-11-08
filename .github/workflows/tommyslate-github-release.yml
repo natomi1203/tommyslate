@@ -61,9 +61,10 @@ jobs:
           SOURCE_SHA: ${{ inputs.source_sha }}
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
-          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
-          version="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
-          cargo_version="$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
+          git cat-file -e "$SOURCE_SHA^{commit}"
+          git merge-base --is-ancestor "$SOURCE_SHA" HEAD
+          version="$(git show "$SOURCE_SHA:pyproject.toml" | python3 -c 'import sys, tomllib; print(tomllib.loads(sys.stdin.read())["project"]["version"])')"
+          cargo_version="$(git show "$SOURCE_SHA:Cargo.toml" | python3 -c 'import sys, tomllib; print(tomllib.loads(sys.stdin.read())["package"]["version"])')"
           test "$version" = "$cargo_version"
           [[ "$version" =~ ^(0\.5\.0|1\.0\.0rc[1-9][0-9]*|1\.0\.0)$ ]]
           if [[ "$version" = "1.0.0" ]]; then
@@ -201,7 +202,7 @@ jobs:
             git tag --sign "$TAG" "$SOURCE_SHA" --message "TommySlate $VERSION"
             git push origin "refs/tags/$TAG"
           fi
-          "$RUNNER_TEMP/gitsign" verify \
+          "$RUNNER_TEMP/gitsign" verify-tag \
             --certificate-identity "$GITSIGN_IDENTITY" \
             --certificate-oidc-issuer "$GITSIGN_ISSUER" \
             "$TAG"
