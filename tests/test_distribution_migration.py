@@ -86,7 +86,9 @@ def test_github_release_uses_protected_keyless_signing() -> None:
     assert 'id-token: write' in workflow
     assert 'contents: write' in workflow
     assert 'GITSIGN_VERSION: "0.17.1"' in workflow
+    assert 'GITSIGN_ASSET_ID: "494536767"' in workflow
     assert 'GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952' in workflow
+    assert "api.github.com/repos/sigstore/gitsign/releases/assets/" in workflow
     assert 'GITSIGN_TOKEN_PROVIDER: github-actions' in workflow
     assert 'tag=tommyslate-v$version' in workflow
     assert '"$RUNNER_TEMP/gitsign" verify-tag' in workflow
