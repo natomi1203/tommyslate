@@ -89,7 +89,9 @@ def test_github_release_uses_protected_keyless_signing() -> None:
     assert 'GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952' in workflow
     assert 'GITSIGN_TOKEN_PROVIDER: github-actions' in workflow
     assert 'tag=tommyslate-v$version' in workflow
-    assert '"$RUNNER_TEMP/gitsign" verify' in workflow
+    assert '"$RUNNER_TEMP/gitsign" verify-tag' in workflow
+    assert 'git merge-base --is-ancestor "$SOURCE_SHA" HEAD' in workflow
+    assert 'git show "$SOURCE_SHA:pyproject.toml"' in workflow
     assert 'release/packages/*' in workflow
     assert 'release/sboms/*' in workflow
     assert '--verify-tag' in workflow
