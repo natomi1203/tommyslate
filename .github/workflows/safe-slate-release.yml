@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.15"
+  PYTHON_VERSION: "3.15.2"
   RUST_VERSION: "1.99.0"
   MATURIN_VERSION: "v1.16.0"
   PACKAGE_NAME: "tommyslate"
@@ -66,7 +66,7 @@ jobs:
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: refs/heads/main
           fetch-depth: 1
           persist-credentials: false
       - name: Confirm source and package contract
@@ -120,16 +120,24 @@ jobs:
             target: x86_64-apple-darwin
             manylinux: ""
             deployment-target: "11.0"
+            maturin-asset-id: "688760473"
+            maturin-asset-sha256: ef7dd01584717c0ebf49b9a2aedf49a6586d17543adb2e8f08577af7d987a525
+            python315-asset-id: "678475752"
+            python315-asset-sha256: 3598759050401152244152503382874410ef8071fb1156544a3bd233ddcf148f
           - name: macos-arm64
             os: macos-15
             target: aarch64-apple-darwin
             manylinux: ""
             deployment-target: "11.0"
+            maturin-asset-id: "688760470"
+            maturin-asset-sha256: 1abe6c9d188b674103a4c3d9bbaa6817cc45c4b7e2ecd5908643624ff5cbf657
           - name: windows-x86_64
             os: windows-2025
             target: x86_64-pc-windows-msvc
             manylinux: ""
             deployment-target: ""
+            maturin-asset-id: "688760479"
+            maturin-asset-sha256: ca9fa03d2b37bbfc2851a62a787f1b6948b33ebd9cc6856376244a340377961b
     runs-on: ${{ matrix.platform.os }}
     env:
       MACOSX_DEPLOYMENT_TARGET: ${{ matrix.platform.deployment-target }}
@@ -148,21 +156,81 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
+      - name: Preload pinned Python 3.15 for Intel macOS
+        if: matrix.platform.name == 'macos-x86_64'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON315_ASSET_ID: ${{ matrix.platform.python315-asset-id }}
+          PYTHON315_ASSET_SHA256: ${{ matrix.platform.python315-asset-sha256 }}
+        run: |
+          set -euo pipefail
+          tool_dir="$RUNNER_TEMP/tommyslate-python315"
+          mkdir -p "$tool_dir"
+          curl --fail --location --silent --show-error \
+            -H 'Accept: application/octet-stream' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/actions/python-versions/releases/assets/$PYTHON315_ASSET_ID" \
+            --output "$tool_dir/python.tar.gz"
+          printf '%s  %s\n' \
+            "$PYTHON315_ASSET_SHA256" \
+            "$tool_dir/python.tar.gz" \
+            | shasum -a 256 --check
+          tar -xzf "$tool_dir/python.tar.gz" -C "$tool_dir"
+          (cd "$tool_dir" && bash setup.sh)
       - id: python315
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Build wheel
+      - name: Install pinned Rust and maturin (non-Linux)
         if: ${{ !startsWith(matrix.platform.name, 'linux-') }}
-        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
-        with:
-          command: build
-          maturin-version: ${{ env.MATURIN_VERSION }}
-          rust-toolchain: ${{ env.RUST_VERSION }}
-          target: ${{ matrix.platform.target }}
-          manylinux: ${{ matrix.platform.manylinux }}
-          args: >-
-            --release --locked --compatibility pypi
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MATURIN_ASSET_ID: ${{ matrix.platform.maturin-asset-id }}
+          MATURIN_ASSET_SHA256: ${{ matrix.platform.maturin-asset-sha256 }}
+        run: |
+          set -euo pipefail
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          rustup default "$RUST_VERSION"
+
+          tool_dir="$RUNNER_TEMP/tommyslate-maturin"
+          mkdir -p "$tool_dir"
+          archive="$tool_dir/maturin.archive"
+          curl --fail --location --silent --show-error \
+            -H 'Accept: application/octet-stream' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/PyO3/maturin/releases/assets/$MATURIN_ASSET_ID" \
+            --output "$archive"
+          python - "$archive" "$MATURIN_ASSET_SHA256" <<'PY'
+          import hashlib
+          from pathlib import Path
+          import sys
+
+          path = Path(sys.argv[1])
+          expected = sys.argv[2]
+          actual = hashlib.sha256(path.read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit(f"maturin SHA-256 mismatch: {actual}")
+          PY
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            unzip -q "$archive" -d "$tool_dir"
+          else
+            tar -xzf "$archive" -C "$tool_dir" maturin
+            chmod 0555 "$tool_dir/maturin"
+          fi
+          printf '%s\n' "$tool_dir" >> "$GITHUB_PATH"
+      - name: Build wheel (non-Linux)
+        if: ${{ !startsWith(matrix.platform.name, 'linux-') }}
+        shell: bash
+        env:
+          RUST_TARGET: ${{ matrix.platform.target }}
+        run: |
+          maturin build \
+            --release --locked --compatibility pypi \
+            --target "$RUST_TARGET" \
             -i python3.15 --out dist
       - name: Build wheel (Linux)
         if: ${{ startsWith(matrix.platform.name, 'linux-') }}
@@ -294,16 +362,39 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: refs/heads/main
           fetch-depth: 1
           persist-credentials: false
+      - name: Confirm requested source is the current protected main
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Install pinned Rust and maturin
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MATURIN_ASSET_ID: "688760466"
+          MATURIN_ASSET_SHA256: 804add817bf3b8a3760324ace2e2c39c345f7a99b3ace1296aeed1abc3a1d8c4
+        run: |
+          set -euo pipefail
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          rustup default "$RUST_VERSION"
+          tool_dir="$RUNNER_TEMP/tommyslate-maturin"
+          mkdir -p "$tool_dir"
+          curl --fail --location --silent --show-error \
+            -H 'Accept: application/octet-stream' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/PyO3/maturin/releases/assets/$MATURIN_ASSET_ID" \
+            --output "$tool_dir/maturin.tar.gz"
+          printf '%s  %s\n' \
+            "$MATURIN_ASSET_SHA256" \
+            "$tool_dir/maturin.tar.gz" \
+            | sha256sum --check --strict
+          tar -xzf "$tool_dir/maturin.tar.gz" -C "$tool_dir" maturin
+          chmod 0555 "$tool_dir/maturin"
+          printf '%s\n' "$tool_dir" >> "$GITHUB_PATH"
       - name: Build sdist
-        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
-        with:
-          command: sdist
-          maturin-version: ${{ env.MATURIN_VERSION }}
-          rust-toolchain: ${{ env.RUST_VERSION }}
-          args: --out dist
+        run: maturin sdist --out dist
       - name: Confirm locked Rust graph
         run: cargo +${{ env.RUST_VERSION }} metadata --locked --format-version 1 > /dev/null
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -321,9 +412,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: refs/heads/main
           fetch-depth: 1
           persist-credentials: false
+      - name: Confirm requested source is the current protected main
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
