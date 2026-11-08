@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0rc1
+
+- Removed the 0.5.x compatibility-only root attributes. The stable root now
+  contains exactly seven entrypoints and their direct result types; advanced
+  constructors, loaders, and helpers remain available from their documented
+  `safe_slate` submodules.
+- Kept the 1.0 stable API snapshot byte-for-byte identical to 0.5.0 and moved
+  machine-readable readiness to the release-candidate phase.
+- Retained the Beta classifier while the RC completes its 30-day soak and an
+  author-external integration is accepted.
+
 ## 0.5.0
 
 - Expanded support to GIL-enabled CPython 3.11–3.15 while retaining one

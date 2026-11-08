@@ -4,13 +4,13 @@ from hashlib import sha256
 
 import pytest
 
-from safe_slate import (
+from safe_slate._core import prepare_linear_contrast_marginals_f64le
+from safe_slate.uncertainty_utils import (
     canonical_matrix_bytes,
     canonical_matrix_f64le_bytes,
     matrix_f64le_sha256,
     matrix_sha256,
     matrix_sha256_for_encoding,
-    prepare_linear_contrast_marginals_f64le,
 )
 
 

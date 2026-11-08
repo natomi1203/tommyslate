@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
+from safe_slate.production_intake import (
     MISSING_FULL_SERVICE_STAGES,
     audit_observed_grpc_envelopes,
     load_observed_grpc_envelope,

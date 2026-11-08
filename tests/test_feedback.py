@@ -5,7 +5,8 @@ import math
 
 import pytest
 
-from safe_slate import assess_feedback_coverage, guarded_rerank
+from safe_slate import guarded_rerank
+from safe_slate.feedback import assess_feedback_coverage
 
 
 def _proposal_log(*, serving_mode: str = "serve", support_ok: bool = True):

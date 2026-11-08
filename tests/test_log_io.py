@@ -6,11 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
+from safe_slate.log_io import load_proposal_log, load_proposal_logs_jsonl
+from safe_slate.production import (
     attach_service_latency,
     create_service_latency_trace,
-    load_proposal_log,
-    load_proposal_logs_jsonl,
 )
 from test_shadow import _shadow_log
 

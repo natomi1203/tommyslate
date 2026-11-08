@@ -66,7 +66,11 @@ jobs:
           git merge-base --is-ancestor "$SOURCE_SHA" HEAD
           version="$(git show "$SOURCE_SHA:pyproject.toml" | python3 -c 'import sys, tomllib; print(tomllib.loads(sys.stdin.read())["project"]["version"])')"
           cargo_version="$(git show "$SOURCE_SHA:Cargo.toml" | python3 -c 'import sys, tomllib; print(tomllib.loads(sys.stdin.read())["package"]["version"])')"
-          test "$version" = "$cargo_version"
+          expected_cargo_version="$version"
+          if [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)rc([0-9]+)$ ]]; then
+            expected_cargo_version="${BASH_REMATCH[1]}-rc.${BASH_REMATCH[2]}"
+          fi
+          test "$cargo_version" = "$expected_cargo_version"
           [[ "$version" =~ ^(0\.5\.0|1\.0\.0rc[1-9][0-9]*|1\.0\.0)$ ]]
           if [[ "$version" = "1.0.0" ]]; then
             test "$PRERELEASE" = "false"

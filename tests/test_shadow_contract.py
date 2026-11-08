@@ -4,7 +4,7 @@ from dataclasses import replace
 
 import pytest
 
-from safe_slate import (
+from safe_slate.shadow_contract import (
     create_shadow_evaluation_contract,
     load_shadow_evaluation_contract,
 )

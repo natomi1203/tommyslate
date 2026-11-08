@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from safe_slate import (
+from safe_slate import guarded_rerank
+from safe_slate.production import (
     attach_service_latency,
     create_service_latency_trace,
     guarded_linear_rerank,
-    guarded_rerank,
 )
 
 

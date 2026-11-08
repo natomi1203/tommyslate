@@ -31,7 +31,7 @@ env:
   RUST_VERSION: "1.99.0"
   MATURIN_VERSION: "v1.16.0"
   PACKAGE_NAME: "tommyslate"
-  PACKAGE_VERSION: "0.5.0"
+  PACKAGE_VERSION: "1.0.0rc1"
 
 jobs:
   validate-source:
@@ -77,13 +77,18 @@ jobs:
           python3 - <<'PY'
           import tomllib
           import os
+          import re
           from pathlib import Path
 
           pyproject = tomllib.loads(Path("pyproject.toml").read_text())
           cargo = tomllib.loads(Path("Cargo.toml").read_text())
           expected = os.environ["PACKAGE_VERSION"]
           assert pyproject["project"]["version"] == expected
-          assert cargo["package"]["version"] == expected
+          match = re.fullmatch(r"(\d+\.\d+\.\d+)rc(\d+)", expected)
+          cargo_expected = (
+              f"{match.group(1)}-rc.{match.group(2)}" if match else expected
+          )
+          assert cargo["package"]["version"] == cargo_expected
           assert pyproject["project"]["name"] == os.environ["PACKAGE_NAME"]
           assert cargo["package"]["name"] == os.environ["PACKAGE_NAME"]
           assert pyproject["tool"]["maturin"]["module-name"] == "safe_slate._core"

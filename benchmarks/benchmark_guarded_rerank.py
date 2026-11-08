@@ -16,7 +16,8 @@ from importlib.metadata import version
 from pathlib import Path
 from typing import Any, Sequence
 
-from safe_slate import guarded_linear_rerank, guarded_rerank
+from safe_slate import guarded_rerank
+from safe_slate.production import guarded_linear_rerank
 
 
 def percentile(values: Sequence[float], probability: float) -> float:

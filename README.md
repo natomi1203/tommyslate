@@ -53,10 +53,12 @@ decision for audits, shadow evaluation, and offline policy evaluation (OPE).
 TommySlate supports CPython 3.11–3.15. Add it to a uv-managed project:
 
 ```bash
-uv add tommyslate
+uv add "tommyslate==1.0.0rc1"
 ```
 
 The distribution is `tommyslate`; the stable Python import is `safe_slate`.
+The exact version opts into the release candidate while 1.0 completes its
+30-day soak and external-integration gate.
 
 ## Try one decision
 
@@ -136,10 +138,11 @@ to overwrite an existing destination.
 
 ## Release and development
 
-Current published release: [TommySlate 0.5.0 Beta](https://pypi.org/project/tommyslate/0.5.0/).
-Version 0.5.0 expands the supported interpreter range and freezes the proposed
-1.x API before RC qualification. Its exact TestPyPI-qualified artifacts are
-recorded in the [signed GitHub Prerelease](https://github.com/natomi1203/tommyslate/releases/tag/tommyslate-v0.5.0).
+Release candidate: [TommySlate 1.0.0rc1](https://pypi.org/project/tommyslate/1.0.0rc1/).
+It exposes the final proposed 1.x root API while retaining the Beta classifier.
+Production/Stable remains blocked until the same RC completes a 30-day soak
+and one author-external integration is accepted. The preceding supported Beta
+is [TommySlate 0.5.0](https://pypi.org/project/tommyslate/0.5.0/).
 
 TommySlate provides CPython stable-ABI wheels for Python 3.11–3.15 on Linux x86-64
 and ARM64, macOS x86-64 and ARM64, and Windows x86-64. Releases are qualified

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from safe_slate import (
+from safe_slate.estimation import (
     estimate_cross_fitted_policy_value,
     estimate_joint_uncertainty_bounds,
     estimate_missingness_adjusted_policy_value,

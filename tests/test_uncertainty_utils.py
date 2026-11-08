@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from safe_slate import (
+from safe_slate.uncertainty_utils import (
     canonical_matrix_bytes,
     canonical_matrix_f64le_bytes,
     matrix_f64le_sha256,

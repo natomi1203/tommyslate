@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "tommyslate"
-version = "0.5.0"
+version = "1.0.0rc1"
 description = "Safely improve ranked lists—or keep the original—with constraints, uncertainty checks, and an audit trail."
 readme = "README.md"
 requires-python = ">=3.11"

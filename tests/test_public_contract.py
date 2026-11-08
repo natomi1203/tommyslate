@@ -8,7 +8,8 @@ from random import Random
 import pytest
 
 import safe_slate
-from safe_slate import build_candidate_pool_operations, guarded_rerank, optimize_slate
+from safe_slate import guarded_rerank, optimize_slate
+from safe_slate.online import build_candidate_pool_operations
 
 
 ROOT = Path(__file__).resolve().parents[1]

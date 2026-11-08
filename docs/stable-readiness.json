@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "target_version": "1.0.0",
-  "phase": "beta",
+  "phase": "release-candidate",
   "beta_version": "0.5.0",
   "release_candidate": {
-    "version": null,
+    "version": "1.0.0rc1",
     "source_sha": null,
     "pypi_published_at": null,
     "soak_not_before": null,
-    "api_snapshot_sha256": null
+    "api_snapshot_sha256": "ca13ac1e164c002e5c4203706862685c3c7346900c75fb989debd27583c71b26"
   },
   "external_validation": {
     "required": 1,
