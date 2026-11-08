@@ -92,6 +92,7 @@ def test_github_release_uses_protected_keyless_signing() -> None:
     assert '"$RUNNER_TEMP/gitsign" verify-tag' in workflow
     assert 'git merge-base --is-ancestor "$SOURCE_SHA" HEAD' in workflow
     assert 'git show "$SOURCE_SHA:pyproject.toml"' in workflow
+    assert workflow.count("fetch-depth: 0") == 2
     assert 'release/packages/*' in workflow
     assert 'release/sboms/*' in workflow
     assert '--verify-tag' in workflow
