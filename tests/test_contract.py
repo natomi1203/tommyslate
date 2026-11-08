@@ -6,14 +6,14 @@ import json
 
 import pytest
 
-from safe_slate import (
-    audit_ope_readiness,
-    audit_ope_readiness_with_contract,
+from safe_slate import audit_ope_readiness
+from safe_slate.contract import (
     classify_evaluation_evidence,
     create_ope_evaluation_contract,
-    estimate_cross_fitted_policy_value,
     load_ope_evaluation_contract,
 )
+from safe_slate.estimation import estimate_cross_fitted_policy_value
+from safe_slate.ope import audit_ope_readiness_with_contract
 from safe_slate.ope import _audit_ope_readiness_with_contract
 from safe_slate.estimation import _validate_evaluation_contract_binding
 

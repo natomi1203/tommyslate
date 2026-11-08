@@ -6,12 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
-    attach_service_latency,
+from safe_slate import guarded_rerank
+from safe_slate.production import attach_service_latency, create_service_latency_trace
+from safe_slate.service_trace import (
     canonical_proposal_log_bytes,
-    create_service_latency_trace,
     create_service_trace_completion,
-    guarded_rerank,
     join_service_trace_completions,
     load_service_trace_completion,
     load_service_trace_completions_jsonl,

@@ -42,7 +42,7 @@ def test_readme_leads_with_the_product_decision_before_engineering_terms() -> No
             "Operate responsibly",
         )
     )
-    assert "uv add tommyslate" in readme
+    assert 'uv add "tommyslate==1.0.0rc1"' in readme
     assert "## What TommySlate does not do" in readme
     assert readme.index("## For engineers") < readme.index("| Goal | Start with |")
     assert readme.count("```python") == 1

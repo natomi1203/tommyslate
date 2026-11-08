@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
+from safe_slate.population_positivity import (
     POSITIVITY_EVIDENCE_SCHEMA_VERSION,
     POSITIVITY_SCOPE,
     STATISTICAL_POSITIVITY_EVIDENCE_SCHEMA_VERSION,

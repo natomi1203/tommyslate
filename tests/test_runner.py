@@ -4,18 +4,24 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
+from safe_slate import run_no_clobber_ope
+from safe_slate.estimation import (
     CrossFittedOpeEstimate,
     JointUncertaintyBoundsEstimate,
     MissingnessAdjustedOpeEstimate,
     PartialIdentificationEstimate,
     PropensityIntervalEstimate,
+)
+from safe_slate.external_intake import freeze_external_input_manifest
+from safe_slate.input_manifest import (
     create_observed_input_identity,
-    audit_manifest_bound_ope_readiness,
-    freeze_external_input_manifest,
-    load_population_positivity_evidence_file,
     observe_manifest_inputs,
-    run_no_clobber_ope,
+)
+from safe_slate.ope import (
+    audit_manifest_bound_ope_readiness,
+)
+from safe_slate.population_positivity import (
+    load_population_positivity_evidence_file,
 )
 from test_external_intake import _spec
 from test_manifest_bound_ope import (

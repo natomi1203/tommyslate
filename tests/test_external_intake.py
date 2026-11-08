@@ -10,21 +10,24 @@ import sys
 
 import pytest
 
-from safe_slate import (
+from safe_slate import guarded_rerank
+from safe_slate.external_intake import (
     EXTERNAL_INPUT_ROLES,
-    OPE_REQUIRED_INPUT_ROLES,
+    freeze_external_input_manifest,
+    write_external_input_manifest,
+)
+from safe_slate.input_manifest import OPE_REQUIRED_INPUT_ROLES, load_input_manifest
+from safe_slate.population_positivity import (
     POSITIVITY_EVIDENCE_SCHEMA_VERSION,
     canonical_population_positivity_evidence_bytes,
-    canonical_matrix_bytes,
-    canonical_matrix_f64le_bytes,
     create_population_positivity_evidence,
     create_statistical_population_positivity_evidence,
-    create_service_latency_trace,
-    create_service_trace_completion,
-    freeze_external_input_manifest,
-    guarded_rerank,
-    load_input_manifest,
-    write_external_input_manifest,
+)
+from safe_slate.production import create_service_latency_trace
+from safe_slate.service_trace import create_service_trace_completion
+from safe_slate.uncertainty_utils import (
+    canonical_matrix_bytes,
+    canonical_matrix_f64le_bytes,
 )
 from safe_slate.external_intake import (
     F64LE_MAGIC,

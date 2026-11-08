@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from safe_slate import (
-    build_candidate_pool_operations,
-    guarded_candidate_pool_rerank,
-)
+from safe_slate import guarded_candidate_pool_rerank
+from safe_slate.online import build_candidate_pool_operations
 
 
 def _request(**overrides: object) -> dict[str, object]:

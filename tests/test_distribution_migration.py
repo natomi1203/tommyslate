@@ -14,14 +14,14 @@ def test_tommyslate_distribution_preserves_python_import_contract() -> None:
     library = json.loads((ROOT / "library.json").read_text(encoding="utf-8"))
 
     assert pyproject["project"]["name"] == "tommyslate"
-    assert pyproject["project"]["version"] == "0.5.0"
+    assert pyproject["project"]["version"] == "1.0.0rc1"
     assert pyproject["project"]["requires-python"] == ">=3.11"
     assert pyproject["project"]["description"] == (
         "Safely improve ranked lists—or keep the original—with constraints, "
         "uncertainty checks, and an audit trail."
     )
     assert cargo["package"]["name"] == "tommyslate"
-    assert cargo["package"]["version"] == "0.5.0"
+    assert cargo["package"]["version"] == "1.0.0-rc.1"
     assert library["software_id"] == "tommyslate"
     assert library["distribution_name"] == "tommyslate"
     assert library["import_modules"] == ["safe_slate"]
@@ -54,7 +54,7 @@ def test_release_workflow_targets_only_the_new_distribution() -> None:
     )
 
     assert 'PACKAGE_NAME: "tommyslate"' in workflow
-    assert 'PACKAGE_VERSION: "0.5.0"' in workflow
+    assert 'PACKAGE_VERSION: "1.0.0rc1"' in workflow
     assert "/p/tommyslate/" in workflow
     assert "pypi/safe-slate-recommender" not in workflow
     assert 'f"safe-slate-recommender==' not in workflow

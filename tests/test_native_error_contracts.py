@@ -8,6 +8,8 @@ import pytest
 from safe_slate import (
     optimize_replacements,
     optimize_slate,
+)
+from safe_slate._core import (
     prepare_linear_contrast_marginals_f64le,
     project_linear_contrast_marginals,
     project_linear_contrast_uncertainty,

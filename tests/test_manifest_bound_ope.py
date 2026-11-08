@@ -5,13 +5,15 @@ from hashlib import sha256
 
 import pytest
 
-from safe_slate import (
-    audit_manifest_bound_ope_readiness,
-    canonical_population_positivity_evidence_bytes,
+from safe_slate.contract import create_ope_evaluation_contract
+from safe_slate.input_manifest import (
     create_immutable_input,
     create_input_manifest,
     create_observed_input_identity,
-    create_ope_evaluation_contract,
+)
+from safe_slate.ope import audit_manifest_bound_ope_readiness
+from safe_slate.population_positivity import (
+    canonical_population_positivity_evidence_bytes,
     create_population_positivity_evidence,
     create_statistical_population_positivity_evidence,
 )

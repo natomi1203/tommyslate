@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from safe_slate import finite_cell_lower_bounds
+from safe_slate.calibration import finite_cell_lower_bounds
 
 
 def test_finite_cell_hoeffding_lower_bound() -> None:

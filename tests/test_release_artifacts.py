@@ -11,7 +11,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.5.0"
+VERSION = "1.0.0rc1"
 SOURCE_SHA = "1" * 40
 
 SPEC = importlib.util.spec_from_file_location(

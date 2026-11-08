@@ -1,10 +1,10 @@
 # Public API reference
 
 The proposed stable 1.x API is the seven-entrypoint surface recorded in
-`library.json`, plus the direct result types named there. Version 0.5.0 keeps
-the former root attributes working for migration, but they are no longer in
-`safe_slate.__all__`; import advanced support APIs from their documented
-submodules. The machine-readable signature and result-shape contract is
+`library.json`, plus the direct result types named there. Version 0.5.0 kept
+former root attributes working for migration; version 1.0.0rc1 removes them.
+Import advanced support APIs from their documented submodules. The
+machine-readable signature and result-shape contract is
 [`stable-api-v1.json`](stable-api-v1.json).
 
 ## `optimize_slate`

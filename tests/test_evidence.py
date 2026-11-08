@@ -7,16 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
+from safe_slate.contract import classify_evaluation_evidence, create_ope_evaluation_contract
+from safe_slate.estimation import estimate_cross_fitted_policy_value
+from safe_slate.evidence import verify_evidence_bundle, write_evidence_bundle
+from safe_slate.input_manifest import (
     audit_input_manifest_observations,
-    classify_evaluation_evidence,
     create_immutable_input,
     create_input_manifest,
     create_observed_input_identity,
-    create_ope_evaluation_contract,
-    estimate_cross_fitted_policy_value,
-    verify_evidence_bundle,
-    write_evidence_bundle,
 )
 from safe_slate.ope import _audit_ope_readiness_with_contract
 

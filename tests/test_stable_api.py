@@ -48,13 +48,20 @@ def test_transitive_support_api_is_importable_from_documented_submodules() -> No
         assert hasattr(importlib.import_module(module_name), attribute), qualified_name
 
 
-def test_legacy_root_attributes_remain_available_but_are_not_stable_exports() -> None:
-    for name in (
+def test_legacy_root_attributes_are_removed_from_the_release_candidate() -> None:
+    manifest = json.loads((ROOT / "library.json").read_text(encoding="utf-8"))
+    transitive_names = {
+        qualified_name.rsplit(".", 1)[1]
+        for qualified_name in manifest["stable_api"]["transitive_support_api"]
+    }
+    legacy_names = {
         "CalibrationResult",
         "build_candidate_pool_operations",
         "create_input_manifest",
-    ):
-        assert hasattr(safe_slate, name)
+        *transitive_names,
+    }
+    for name in legacy_names:
+        assert not hasattr(safe_slate, name)
         assert name not in safe_slate.__all__
 
 
@@ -69,14 +76,20 @@ def test_python_compatibility_metadata_agrees() -> None:
         assert f"Programming Language :: Python :: {version}" in project["classifiers"]
 
 
-def test_stable_readiness_is_fail_closed_before_rc_soak() -> None:
+def test_stable_readiness_is_fail_closed_during_rc_soak() -> None:
     readiness = json.loads(
         (ROOT / "docs" / "stable-readiness.json").read_text(encoding="utf-8")
     )
     assert readiness["schema_version"] == "1.0.0"
-    assert readiness["phase"] == "beta"
+    assert readiness["phase"] == "release-candidate"
     assert readiness["beta_version"] == "0.5.0"
-    assert readiness["release_candidate"]["version"] is None
+    assert readiness["release_candidate"]["version"] == "1.0.0rc1"
+    assert readiness["release_candidate"]["source_sha"] is None
+    assert readiness["release_candidate"]["pypi_published_at"] is None
+    assert readiness["release_candidate"]["soak_not_before"] is None
+    assert readiness["release_candidate"]["api_snapshot_sha256"] == (
+        "ca13ac1e164c002e5c4203706862685c3c7346900c75fb989debd27583c71b26"
+    )
     assert readiness["external_validation"]["required"] == 1
     assert readiness["external_validation"]["accepted_issue_urls"] == []
     assert readiness["stable_release_ready"] is False

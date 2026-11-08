@@ -5,13 +5,12 @@ import math
 
 import pytest
 
-from safe_slate import (
+from safe_slate import guarded_rerank
+from safe_slate.production import (
     attach_service_latency,
     create_service_latency_trace,
-    guarded_rerank,
-    summarize_shadow_run,
 )
-from safe_slate.shadow import _service_trace_valid
+from safe_slate.shadow import _service_trace_valid, summarize_shadow_run
 
 
 def _shadow_log(

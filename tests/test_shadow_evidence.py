@@ -7,18 +7,24 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
-    LINEAR_PARAMETER_COVARIANCE_ROLE,
-    REQUEST_CONTRAST_FEATURES_ROLE,
-    canonical_matrix_bytes,
+from safe_slate.input_manifest import (
+    audit_input_manifest_observations,
     create_immutable_input,
     create_input_manifest,
     create_observed_input_identity,
-    guarded_linear_rerank,
-    matrix_sha256,
+)
+from safe_slate.production import guarded_linear_rerank
+from safe_slate.shadow_evidence import (
     run_no_clobber_shadow_evaluation,
     verify_shadow_evidence_bundle,
-    audit_input_manifest_observations,
+)
+from safe_slate.uncertainty_binding import (
+    LINEAR_PARAMETER_COVARIANCE_ROLE,
+    REQUEST_CONTRAST_FEATURES_ROLE,
+)
+from safe_slate.uncertainty_utils import (
+    canonical_matrix_bytes,
+    matrix_sha256,
 )
 from safe_slate.shadow_evidence import (
     ShadowEvidenceVerification,

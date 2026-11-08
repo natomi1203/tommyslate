@@ -4,9 +4,9 @@
   "tagline": "Every recommendation, checked.",
   "software_id": "tommyslate",
   "distribution_name": "tommyslate",
-  "version": "0.5.0",
+  "version": "1.0.0rc1",
   "package_root": ".",
-  "status": "beta",
+  "status": "release-candidate",
   "python_requires": ">=3.11",
   "python_versions": ["3.11", "3.12", "3.13", "3.14", "3.15"],
   "public_api": [

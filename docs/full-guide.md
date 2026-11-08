@@ -19,10 +19,10 @@ TommySlate is a safer slate re-ranker for Python, backed by a Rust search core.
 It is built for teams that need more than a high-scoring list: they need a
 bounded search, an auditable decision, and a safe fallback.
 
-> **Release status:** TommySlate 0.5.0 is the published Beta compatibility
-> release that freezes the proposed 1.x API. Its TestPyPI-qualified artifacts
-> were promoted unchanged to PyPI; 1.0 still requires the RC soak and external
-> validation.
+> **Release status:** TommySlate 1.0.0rc1 is the Beta release candidate for the
+> frozen 1.x API. Install it explicitly with
+> `uv add "tommyslate==1.0.0rc1"`; stable 1.0 still requires the 30-day soak and
+> an accepted author-external integration.
 
 ## Why use it?
 
@@ -44,7 +44,7 @@ population support, or production authorization.
 CPython 3.11–3.15 is supported. Add TommySlate to a uv-managed project:
 
 ```bash
-uv add "tommyslate==0.5.0"
+uv add "tommyslate==1.0.0rc1"
 ```
 
 The stable Python import remains `safe_slate`; application imports do not
@@ -53,7 +53,7 @@ installing both because they provide the same Python module:
 
 ```bash
 uv remove safe-slate-recommender
-uv add "tommyslate==0.5.0"
+uv add "tommyslate==1.0.0rc1"
 ```
 
 The legacy `safe-slate-freeze-inputs` command remains as an alias for the new
@@ -235,7 +235,7 @@ correlation in (Z\Sigma Z^\top); treating the operation variances as
 independent can otherwise over- or understate the slate-level uncertainty.
 
 ```python
-from safe_slate import guarded_linear_rerank
+from safe_slate.production import guarded_linear_rerank
 
 decision = guarded_linear_rerank(
     request_id="home-01J...",
@@ -287,7 +287,7 @@ covariance snapshot to the frozen input manifest and to the storage identity
 observed immediately before evaluation:
 
 ```python
-from safe_slate import audit_linear_uncertainty_input_binding
+from safe_slate.uncertainty_binding import audit_linear_uncertainty_input_binding
 
 binding = audit_linear_uncertainty_input_binding(
     decision.proposal_log,
@@ -333,9 +333,9 @@ assert shadow.proposed_slate == (10, 11, 100, 101)  # counterfactual
 
 # Persist the primary proposal record first. Its own commit time cannot be
 # placed inside the same immutable record without creating a cycle.
-from safe_slate import (
+from safe_slate.production import create_service_latency_trace
+from safe_slate.service_trace import (
     canonical_proposal_log_bytes,
-    create_service_latency_trace,
     create_service_trace_completion,
 )
 
@@ -374,7 +374,7 @@ spans. `complete(...)` refuses to emit a sidecar until all seven stages,
 response completion, and the primary log commit have been observed:
 
 ```python
-from safe_slate import ServiceTraceRecorder, canonical_proposal_log_bytes
+from safe_slate.service_trace import ServiceTraceRecorder, canonical_proposal_log_bytes
 
 trace = ServiceTraceRecorder(
     trace_id=current_otel_trace_id,
@@ -415,7 +415,7 @@ ready, actual `OutPayload` sent, and payload sizes. Intake is strict and
 bounded:
 
 ```python
-from safe_slate import (
+from safe_slate.production_intake import (
     audit_observed_grpc_envelopes,
     load_observed_grpc_envelopes_jsonl,
 )
@@ -437,9 +437,9 @@ or durable log-commit acknowledgement. Those stages remain required before
 the complete production service trace can be finalized.
 
 ```python
-from safe_slate import (
+from safe_slate.log_io import load_proposal_logs_jsonl
+from safe_slate.service_trace import (
     join_service_trace_completions,
-    load_proposal_logs_jsonl,
     load_service_trace_completions_jsonl,
 )
 
@@ -465,7 +465,7 @@ For actual `serving_mode="serve"` records, audit the frozen window directly
 from both immutable streams:
 
 ```python
-from safe_slate import summarize_production_service_run
+from safe_slate.service_trace import summarize_production_service_run
 
 service_summary = summarize_production_service_run(
     primary_logs,
@@ -497,7 +497,7 @@ analysis.
 Aggregate a frozen set of shadow logs with explicit operability thresholds:
 
 ```python
-from safe_slate import summarize_shadow_run
+from safe_slate.shadow import summarize_shadow_run
 
 shadow_summary = summarize_shadow_run(
     shadow_logs,
@@ -541,9 +541,9 @@ manifest, resource caps, output identity, and authorization boundary before
 opening the final logs:
 
 ```python
-from safe_slate import (
-    create_shadow_evaluation_contract,
-    load_proposal_logs_jsonl,
+from safe_slate.log_io import load_proposal_logs_jsonl
+from safe_slate.shadow_contract import create_shadow_evaluation_contract
+from safe_slate.shadow_evidence import (
     run_no_clobber_shadow_evaluation,
     verify_shadow_evidence_bundle,
 )
@@ -712,7 +712,7 @@ After the outcome window settles, audit whether the proposal log can support a
 direct update, an OPE precheck, or descriptive analysis only:
 
 ```python
-from safe_slate import assess_feedback_coverage
+from safe_slate.feedback import assess_feedback_coverage
 
 feedback = assess_feedback_coverage(
     decision.proposal_log,
@@ -828,7 +828,7 @@ Only a full-population `pass` with known propensities can enter the packaged
 point estimator:
 
 ```python
-from safe_slate import estimate_cross_fitted_policy_value
+from safe_slate.estimation import estimate_cross_fitted_policy_value
 
 estimate = estimate_cross_fitted_policy_value(
     readiness,
@@ -871,7 +871,7 @@ For known propensities and 80–<100% support, use full-population partial
 identification instead of extrapolating a point estimate:
 
 ```python
-from safe_slate import estimate_partial_identification_bounds
+from safe_slate.estimation import estimate_partial_identification_bounds
 
 bounds = estimate_partial_identification_bounds(
     partial_readiness,
@@ -908,7 +908,7 @@ When each logging propensity is known only to lie in a covering interval, use
 the dedicated sign-aware estimator:
 
 ```python
-from safe_slate import estimate_propensity_interval_bounds
+from safe_slate.estimation import estimate_propensity_interval_bounds
 
 interval_bounds = estimate_propensity_interval_bounds(
     interval_readiness,
@@ -946,7 +946,7 @@ For outcome-independent missing labels with validated request-time observation
 propensities, use the missingness-adjusted point estimator:
 
 ```python
-from safe_slate import estimate_missingness_adjusted_policy_value
+from safe_slate.estimation import estimate_missingness_adjusted_policy_value
 
 adjusted = estimate_missingness_adjusted_policy_value(
     missingness_readiness,
@@ -983,7 +983,7 @@ When missing outcomes occur together with partial support or propensity
 intervals, use the joint-bound API rather than chaining point estimates:
 
 ```python
-from safe_slate import estimate_joint_uncertainty_bounds
+from safe_slate.estimation import estimate_joint_uncertainty_bounds
 
 joint = estimate_joint_uncertainty_bounds(
     joint_readiness,
@@ -1097,7 +1097,7 @@ Feature snapshots may not cross `feature_cutoff`; settled-label snapshots must
 fall after that cutoff and no later than `label_cutoff`:
 
 ```python
-from safe_slate import create_immutable_input, create_input_manifest
+from safe_slate.input_manifest import create_immutable_input, create_input_manifest
 
 candidate_log = create_immutable_input(
     input_id="candidate-log",
@@ -1146,7 +1146,7 @@ identities remain explicitly declared rather than being incorrectly reported
 as byte-verified.
 
 ```python
-from safe_slate import create_ope_evaluation_contract
+from safe_slate.contract import create_ope_evaluation_contract
 
 contract = create_ope_evaluation_contract(
     evaluation_id="purchase-ope-final-v1",
@@ -1198,10 +1198,8 @@ the actual immutable identity of every resource. The manifest-bound entrypoint
 refuses to inspect OPE rows until all declared inputs match exactly:
 
 ```python
-from safe_slate import (
-    audit_manifest_bound_ope_readiness,
-    create_observed_input_identity,
-)
+from safe_slate.input_manifest import create_observed_input_identity
+from safe_slate.ope import audit_manifest_bound_ope_readiness
 
 observed_inputs = [
     create_observed_input_identity(
@@ -1218,7 +1216,7 @@ observed_inputs = [
 
 # A backend-neutral alternative dispatches by URI scheme. `file:` is built in;
 # adapters for gs:, s3:, model:, git:, and similar schemes remain read-only.
-from safe_slate import observe_manifest_inputs
+from safe_slate.input_manifest import observe_manifest_inputs
 
 observation_batch = observe_manifest_inputs(
     input_manifest,
@@ -1315,7 +1313,7 @@ retains every explicit prohibition.
 Persist a completed offline run as a new evidence bundle:
 
 ```python
-from safe_slate import write_evidence_bundle, verify_evidence_bundle
+from safe_slate.evidence import verify_evidence_bundle, write_evidence_bundle
 
 manifest = write_evidence_bundle(
     "/new/output/parent/purchase-ope-final-v1",

@@ -2,9 +2,10 @@
 
 ## Version policy
 
-The distribution uses Semantic Versioning. Version 0.5.0 freezes the proposed
-1.x API recorded in `library.json` and `stable-api-v1.json`. Starting with
-1.0.0, breaking changes to that surface require 2.0. A deprecation remains
+The distribution uses Semantic Versioning. Version 1.0.0rc1 exposes the final
+proposed 1.x API recorded in `library.json` and `stable-api-v1.json`; its
+snapshot is identical to 0.5.0. Starting with 1.0.0, breaking changes to that
+surface require 2.0. A deprecation remains
 documented for at least one minor release and 90 days before removal in the
 next major version. Patch releases may tighten validation when previously
 accepted inputs were ambiguous, non-finite, silently coerced, or capable of
@@ -42,8 +43,8 @@ distributions in one environment because they provide the same Python module.
   schema in place.
 - Add a new versioned encoding or schema, retain the old reader, and record the
   selected version in every audit artifact.
-- Root attributes outside the manifest remain available in 0.5.x for
-  compatibility, but are removed in 1.0.0rc1. Import them from their
-  documented `safe_slate` submodule now; see [the migration guide](1.0-migration.md).
+- Root attributes outside the manifest remain available only in 0.5.x. They
+  are removed in 1.0.0rc1; import them from their documented `safe_slate`
+  submodule; see [the migration guide](1.0-migration.md).
 - A change that can alter a previously certified decision requires a minor
   version, explicit migration notes, and native/Python parity tests.

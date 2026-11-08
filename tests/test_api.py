@@ -4,7 +4,8 @@ import math
 
 import pytest
 
-from safe_slate import optimize_slate, project_linear_contrast_uncertainty
+from safe_slate import optimize_slate
+from safe_slate._core import project_linear_contrast_uncertainty
 
 
 def test_linear_contrast_projection_retains_shared_covariance() -> None:

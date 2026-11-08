@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from safe_slate import (
+from safe_slate.input_manifest import (
     audit_input_manifest_observations,
     create_immutable_input,
     create_input_manifest,
