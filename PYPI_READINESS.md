@@ -2,15 +2,44 @@
 
 Assessment date: 2026-11-08 (Asia/Tokyo).
 
-## TommySlate 0.5.0 Beta candidate
+## TommySlate 0.5.0 Beta production release
 
-Version 0.5.0 is not yet published. It expands supported GIL-enabled CPython
-versions to 3.11–3.15 and freezes the proposed 1.x API. Publication remains
-fail-closed until the protected `main` source SHA passes the publication-disabled
-matrix, TestPyPI OIDC qualification, exact-artifact PyPI promotion, ten
-cross-version installs per index, and keyless signed GitHub Prerelease
-finalization. Evidence URLs and hashes will be added only after those steps
-complete.
+TommySlate 0.5.0 is published on
+[PyPI](https://pypi.org/project/tommyslate/0.5.0/) and
+[TestPyPI](https://test.pypi.org/project/tommyslate/0.5.0/). It expands
+supported GIL-enabled CPython versions to 3.11–3.15 and freezes the proposed
+1.x API without changing the ranking contract or the `safe_slate` import.
+
+The frozen source is `d65116e83929b07ac10e5ad30303482c7e67e073`. The
+[publication-disabled run](https://github.com/natomi1203/tommyslate/actions/runs/42472279309)
+built and smoke-tested five wheels and one sdist. The approved
+[TestPyPI qualification run](https://github.com/natomi1203/tommyslate/actions/runs/42472616483)
+published through OIDC, matched all six remote hashes, and completed Python
+3.11 and 3.15 reinstalls on all five runners. The approved
+[production promotion run](https://github.com/natomi1203/tommyslate/actions/runs/42473505109)
+recovered that exact bundle without rebuilding, matched the production hashes,
+and repeated all ten installs.
+
+The
+[signed-release finalization run](https://github.com/natomi1203/tommyslate/actions/runs/42479429791)
+verified the keyless `tommyslate-v0.5.0` tag against the GitHub Actions OIDC
+identity and Rekor, then published the
+[GitHub Prerelease](https://github.com/natomi1203/tommyslate/releases/tag/tommyslate-v0.5.0)
+with the six packages, immutable manifest, `SHA256SUMS`, and five wheel SBOMs.
+
+## TommySlate 0.5.0 production manifest
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `tommyslate-0.5.0-cp310-abi3-macosx_11_0_arm64.whl` | `11ef1e996b0287305a7cb48866c40e06d9054bff89506e6d3219e05bad366f96` |
+| `tommyslate-0.5.0-cp310-abi3-macosx_11_0_x86_64.whl` | `1346f96e17f2848e6289d52ad410b9ea8d290c616b12704e9345079c49e1b4ec` |
+| `tommyslate-0.5.0-cp310-abi3-manylinux_2_28_aarch64.whl` | `667dd53becbce64cf1852ee69ed931978c38e5a9f32803ab2496e556ef50325f` |
+| `tommyslate-0.5.0-cp310-abi3-manylinux_2_28_x86_64.whl` | `d037b65816550816b9a05b52ce222b2b9461303cbf5643cb071d3c786a1acf20` |
+| `tommyslate-0.5.0-cp310-abi3-win_amd64.whl` | `5583194bdad5b78b16503c90cd4ac7dbb09f2a43670e6b1fee966bbf957ec6e3` |
+| `tommyslate-0.5.0.tar.gz` | `00532c948b4e4964b3d936e2652714831f44131cb872d802adce50a589c8270e` |
+
+Production PyPI, TestPyPI, the GitHub Prerelease, and the archived manifest
+expose these exact six package filenames and SHA-256 values.
 
 ## TommySlate 0.4.1 Beta production release
 
