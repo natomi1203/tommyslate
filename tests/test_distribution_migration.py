@@ -14,13 +14,14 @@ def test_tommyslate_distribution_preserves_python_import_contract() -> None:
     library = json.loads((ROOT / "library.json").read_text(encoding="utf-8"))
 
     assert pyproject["project"]["name"] == "tommyslate"
-    assert pyproject["project"]["version"] == "0.4.1"
+    assert pyproject["project"]["version"] == "0.5.0"
+    assert pyproject["project"]["requires-python"] == ">=3.11"
     assert pyproject["project"]["description"] == (
         "Safely improve ranked lists—or keep the original—with constraints, "
         "uncertainty checks, and an audit trail."
     )
     assert cargo["package"]["name"] == "tommyslate"
-    assert cargo["package"]["version"] == "0.4.1"
+    assert cargo["package"]["version"] == "0.5.0"
     assert library["software_id"] == "tommyslate"
     assert library["distribution_name"] == "tommyslate"
     assert library["import_modules"] == ["safe_slate"]
@@ -53,7 +54,7 @@ def test_release_workflow_targets_only_the_new_distribution() -> None:
     )
 
     assert 'PACKAGE_NAME: "tommyslate"' in workflow
-    assert 'PACKAGE_VERSION: "0.4.1"' in workflow
+    assert 'PACKAGE_VERSION: "0.5.0"' in workflow
     assert "/p/tommyslate/" in workflow
     assert "pypi/safe-slate-recommender" not in workflow
     assert 'f"safe-slate-recommender==' not in workflow
@@ -74,3 +75,21 @@ def test_production_promotion_reuses_testpypi_qualified_artifacts() -> None:
     assert "needs.pypi-preflight.result == 'success'" in workflow
     assert "needs.publish-pypi.result == 'success'" in workflow
     assert "needs.verify-pypi.result == 'success'" in workflow
+
+
+def test_github_release_uses_protected_keyless_signing() -> None:
+    workflow = (
+        ROOT / ".github/workflows/tommyslate-github-release.yml"
+    ).read_text(encoding="utf-8")
+
+    assert 'name: release' in workflow
+    assert 'id-token: write' in workflow
+    assert 'contents: write' in workflow
+    assert 'GITSIGN_VERSION: "0.17.1"' in workflow
+    assert 'GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952' in workflow
+    assert 'GITSIGN_TOKEN_PROVIDER: github-actions' in workflow
+    assert 'tag=tommyslate-v$version' in workflow
+    assert '"$RUNNER_TEMP/gitsign" verify' in workflow
+    assert 'release/packages/*' in workflow
+    assert 'release/sboms/*' in workflow
+    assert '--verify-tag' in workflow

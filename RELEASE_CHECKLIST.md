@@ -1,61 +1,51 @@
-# Release checklist — TommySlate 0.4.1 Beta
+# Release checklist — TommySlate 0.5.0 Beta
 
-Version 0.4.1 aligns the GitHub repository with the `tommyslate` distribution
-name and changes the PyPI classifier from Alpha to Beta. Runtime behavior, the
-`safe_slate` import, and the stable API remain unchanged from 0.4.0.
+Version 0.5.0 expands supported GIL-enabled CPython versions to 3.11–3.15 and
+freezes the proposed 1.x API. It does not change ranking decisions, fail-closed
+behavior, artifact count, or the `safe_slate` import.
 
-Frozen source: `ea5745472bc19a536bef3318a2357ff222a20c99`.
-[Publication-disabled qualification](https://github.com/natomi1203/tommyslate/actions/runs/42384926807),
-[TestPyPI qualification](https://github.com/natomi1203/tommyslate/actions/runs/42385302459),
-and [production promotion](https://github.com/natomi1203/tommyslate/actions/runs/42385996695)
-all completed successfully.
+## Source and API contract
 
-## Source and identity contract
-
-- [x] Freeze the exact 40-character merge commit selected from `main`.
-- [x] Rename the repository to `natomi1203/tommyslate` and update the local
-      `origin` remote.
+- [ ] Freeze the exact 40-character merge commit selected from protected `main`.
 - [x] `pyproject.toml`, `Cargo.toml`, `CITATION.cff`, `library.json`, and the
-      release workflow agree on distribution `tommyslate` and version `0.4.1`.
-- [x] Package metadata uses `Development Status :: 4 - Beta` and contains no
-      Alpha classifier.
-- [x] Repository, documentation, changelog, issue, citation, and CI badge URLs
-      point to `https://github.com/natomi1203/tommyslate`.
-- [x] The native module remains `safe_slate._core`; all registered public
-      interfaces and both intake CLI names retain their existing behavior.
+      release workflow agree on distribution `tommyslate` and version `0.5.0`.
+- [x] Metadata declares Beta and `Requires-Python >=3.11` with CPython
+      classifiers 3.11–3.15.
+- [x] `safe_slate.__all__` contains only seven entrypoints and their stable
+      root result types; 0.4.1 root attributes remain available for migration.
+- [x] The 1.x API snapshot records signatures, defaults, types, result
+      attributes, dataclass fields, and `to_dict()` keys.
 
 ## Verification for the frozen source SHA
 
-- [x] `uv sync --frozen` and `uv run maturin develop --release` succeed.
-- [x] Python tests, mypy, `mypy.stubtest`, and bytecode compilation pass.
-- [x] Rust tests and warning-free Clippy pass with the locked graph.
-- [x] Python and Rust coverage gates remain at 100%.
-- [x] A local wheel and sdist identify `tommyslate==0.4.1`, contain the Beta
-      classifier and `safe_slate`, and pass `twine check`.
-- [x] Five platform wheels and one sdist are built from one source SHA and pass
-      isolated Python 3.15 smoke tests.
+- [ ] Python tests pass on 3.11, 3.12, 3.13, 3.14, and 3.15.
+- [ ] Rust 1.85 `cargo check --locked --all-targets` succeeds.
+- [ ] Rust 1.99 tests, Clippy, mypy, stubtest, and bytecode compilation pass.
+- [ ] Python and Rust coverage gates remain at 100%.
+- [ ] CodeQL for Python, Rust, and Actions succeeds.
+- [ ] `cargo-audit` and `pip-audit` report no High/Critical vulnerability.
+- [ ] A local wheel and sdist identify `tommyslate==0.5.0`, include Apache-2.0
+      and type metadata, and pass `twine check`.
+- [ ] Five `cp310-abi3` wheels and one sdist are built from one source SHA.
+- [ ] Every wheel passes isolated Python 3.11 and 3.15 import, `pip check`,
+      approved-update, and baseline-fallback smoke tests.
 
-## OIDC and TestPyPI
+## OIDC publication
 
-- [x] Update the active Trusted Publisher on TestPyPI and PyPI from repository
-      `natomi1203/safe-slate-recommender` to `natomi1203/tommyslate`, retaining
-      workflow `safe-slate-release.yml` and protected environments
-      `testpypi`/`pypi`.
-- [x] Confirm both GitHub Environments still require owner review and remain
-      restricted to `main`.
-- [x] Run a publication-disabled five-platform build and freeze the manifest.
-- [x] Publish and verify the exact manifest on TestPyPI through OIDC.
-- [x] Reinstall `tommyslate==0.4.1` from TestPyPI on all five target runners.
-- [x] Obtain explicit owner approval for the production artifact hashes.
+- [ ] Run the publication-disabled five-platform matrix and freeze its manifest.
+- [ ] Publish the exact manifest to TestPyPI through the protected environment.
+- [ ] Match all TestPyPI filenames and SHA-256 values to the manifest.
+- [ ] Reinstall from TestPyPI on Python 3.11 and 3.15 on all five runners.
+- [ ] Promote the TestPyPI-qualified files to PyPI without rebuilding.
+- [ ] Match all production filenames and hashes and repeat the ten installs.
 
-## Production publication
+## Signed GitHub prerelease
 
-- [x] Recover the exact TestPyPI-qualified files without rebuilding.
-- [x] Upload through the protected `pypi` environment and OIDC.
-- [x] Match all production filenames and SHA-256 values to TestPyPI.
-- [x] Reinstall `tommyslate==0.4.1` from PyPI on all five target runners.
-- [x] Replace candidate wording with the immutable 0.4.1 release evidence.
+- [ ] Create keyless-signed tag `tommyslate-v0.5.0` from the frozen source SHA.
+- [ ] Verify the tag with the pinned `gitsign` version.
+- [ ] Publish a GitHub Prerelease with the six packages, manifest,
+      `SHA256SUMS`, SBOMs, source SHA, and TestPyPI/PyPI run URLs.
 
-Do not delete or overwrite 0.4.0 or the historical
-`safe-slate-recommender==0.3.1` distribution. Tags, GitHub Release creation,
-containers, deployments, and announcements remain separate decisions.
+Do not publish 1.0.0 until the latest RC completes a 30-day soak and an
+author-external integration is accepted. Do not publish the sidecar container,
+free-threaded wheels, musllinux wheels, or Windows ARM64 wheels in this release.

@@ -31,7 +31,7 @@ env:
   RUST_VERSION: "1.99.0"
   MATURIN_VERSION: "v1.16.0"
   PACKAGE_NAME: "tommyslate"
-  PACKAGE_VERSION: "0.4.1"
+  PACKAGE_VERSION: "0.5.0"
 
 jobs:
   validate-source:
@@ -133,7 +133,12 @@ jobs:
           ref: ${{ inputs.source_sha }}
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      - id: python311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - id: python315
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Build wheel
@@ -149,6 +154,9 @@ jobs:
             -i python3.15 --out dist
       - name: Install and smoke-test local wheel
         shell: bash
+        env:
+          PYTHON_311: ${{ steps.python311.outputs.python-path }}
+          PYTHON_315: ${{ steps.python315.outputs.python-path }}
         run: |
           python - <<'PY'
           import os
@@ -159,14 +167,6 @@ jobs:
 
           wheels = list(Path("dist").resolve().glob("*.whl"))
           assert len(wheels) == 1, wheels
-          environment = Path(tempfile.mkdtemp(prefix="tommyslate-wheel-"))
-          venv.EnvBuilder(with_pip=True).create(environment)
-          python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-          subprocess.run(
-              [python, "-m", "pip", "install", "--no-index", str(wheels[0])],
-              check=True,
-          )
-          subprocess.run([python, "-m", "pip", "check"], check=True)
           smoke = """
           from safe_slate import optimize_slate
           kwargs = dict(
@@ -179,8 +179,48 @@ jobs:
           second = optimize_slate(**kwargs)
           assert first.selected_indices == second.selected_indices == [0]
           assert first.rechecked and second.rechecked
+          from safe_slate import guarded_rerank
+          request = dict(
+              request_id="release-smoke",
+              baseline_item_ids=[10, 11],
+              protected_count=1,
+              remove_positions=[1],
+              add_item_ids=[100],
+              reward_deltas=[0.5],
+              safety_mean_deltas=[0.1],
+              safety_variances=[0.0],
+              baseline_metric=0.5,
+              degradation_tolerance=0.01,
+              max_replacements=1,
+          )
+          approved = guarded_rerank(
+              **request,
+              support_ok=True,
+              uncertainty_valid=True,
+              distribution_shift_detected=False,
+              proposal_log_complete=True,
+          )
+          kept = guarded_rerank(**request)
+          assert approved.slate == (10, 100) and approved.oracle.rechecked
+          assert kept.slate == (10, 11) and kept.fallback and kept.oracle.rechecked
           """
-          subprocess.run([python, "-c", smoke], cwd=environment, check=True)
+          for version, base_python in (
+              ("3.11", os.environ["PYTHON_311"]),
+              ("3.15", os.environ["PYTHON_315"]),
+          ):
+              environment = Path(
+                  tempfile.mkdtemp(prefix=f"tommyslate-wheel-{version}-")
+              )
+              subprocess.run([base_python, "-m", "venv", environment], check=True)
+              python = environment / (
+                  "Scripts/python.exe" if os.name == "nt" else "bin/python"
+              )
+              subprocess.run(
+                  [python, "-m", "pip", "install", "--no-index", str(wheels[0])],
+                  check=True,
+              )
+              subprocess.run([python, "-m", "pip", "check"], check=True)
+              subprocess.run([python, "-c", smoke], cwd=environment, check=True)
           PY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -391,11 +431,19 @@ jobs:
             os: windows-2025
     runs-on: ${{ matrix.platform.os }}
     steps:
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      - id: python311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - id: python315
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install exact TestPyPI version and smoke-test
         shell: bash
+        env:
+          PYTHON_311: ${{ steps.python311.outputs.python-path }}
+          PYTHON_315: ${{ steps.python315.outputs.python-path }}
         run: |
           python - <<'PY'
           import os
@@ -404,23 +452,6 @@ jobs:
           import tempfile
           import venv
 
-          environment = Path(tempfile.mkdtemp(prefix="tommyslate-testpypi-"))
-          venv.EnvBuilder(with_pip=True).create(environment)
-          python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-          subprocess.run(
-              [
-                  python,
-                  "-m",
-                  "pip",
-                  "install",
-                  "--index-url",
-                  "https://test.pypi.org/simple/",
-                  "--no-deps",
-                  f"{os.environ['PACKAGE_NAME']}=={os.environ['PACKAGE_VERSION']}",
-              ],
-              check=True,
-          )
-          subprocess.run([python, "-m", "pip", "check"], check=True)
           smoke = """
           from safe_slate import optimize_slate
           kwargs = dict(
@@ -433,8 +464,57 @@ jobs:
           second = optimize_slate(**kwargs)
           assert first.selected_indices == second.selected_indices == [0]
           assert first.rechecked and second.rechecked
+          from safe_slate import guarded_rerank
+          request = dict(
+              request_id="release-smoke",
+              baseline_item_ids=[10, 11],
+              protected_count=1,
+              remove_positions=[1],
+              add_item_ids=[100],
+              reward_deltas=[0.5],
+              safety_mean_deltas=[0.1],
+              safety_variances=[0.0],
+              baseline_metric=0.5,
+              degradation_tolerance=0.01,
+              max_replacements=1,
+          )
+          approved = guarded_rerank(
+              **request,
+              support_ok=True,
+              uncertainty_valid=True,
+              distribution_shift_detected=False,
+              proposal_log_complete=True,
+          )
+          kept = guarded_rerank(**request)
+          assert approved.slate == (10, 100) and approved.oracle.rechecked
+          assert kept.slate == (10, 11) and kept.fallback and kept.oracle.rechecked
           """
-          subprocess.run([python, "-c", smoke], cwd=environment, check=True)
+          for version, base_python in (
+              ("3.11", os.environ["PYTHON_311"]),
+              ("3.15", os.environ["PYTHON_315"]),
+          ):
+              environment = Path(
+                  tempfile.mkdtemp(prefix=f"tommyslate-testpypi-{version}-")
+              )
+              subprocess.run([base_python, "-m", "venv", environment], check=True)
+              python = environment / (
+                  "Scripts/python.exe" if os.name == "nt" else "bin/python"
+              )
+              subprocess.run(
+                  [
+                      python,
+                      "-m",
+                      "pip",
+                      "install",
+                      "--index-url",
+                      "https://test.pypi.org/simple/",
+                      "--no-deps",
+                      f"{os.environ['PACKAGE_NAME']}=={os.environ['PACKAGE_VERSION']}",
+                  ],
+                  check=True,
+              )
+              subprocess.run([python, "-m", "pip", "check"], check=True)
+              subprocess.run([python, "-c", smoke], cwd=environment, check=True)
           PY
 
   recover-qualified-release:
@@ -673,11 +753,19 @@ jobs:
             os: windows-2025
     runs-on: ${{ matrix.platform.os }}
     steps:
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      - id: python311
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - id: python315
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install exact production version and smoke-test
         shell: bash
+        env:
+          PYTHON_311: ${{ steps.python311.outputs.python-path }}
+          PYTHON_315: ${{ steps.python315.outputs.python-path }}
         run: |
           python - <<'PY'
           import os
@@ -686,25 +774,6 @@ jobs:
           import tempfile
           import venv
 
-          environment = Path(tempfile.mkdtemp(prefix="tommyslate-pypi-"))
-          venv.EnvBuilder(with_pip=True).create(environment)
-          python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-          subprocess.run(
-              [
-                  python,
-                  "-m",
-                  "pip",
-                  "install",
-                  "--index-url",
-                  "https://pypi.org/simple/",
-                  "--retries",
-                  "10",
-                  "--no-deps",
-                  f"{os.environ['PACKAGE_NAME']}=={os.environ['PACKAGE_VERSION']}",
-              ],
-              check=True,
-          )
-          subprocess.run([python, "-m", "pip", "check"], check=True)
           smoke = """
           from safe_slate import optimize_slate
           kwargs = dict(
@@ -717,6 +786,57 @@ jobs:
           second = optimize_slate(**kwargs)
           assert first.selected_indices == second.selected_indices == [0]
           assert first.rechecked and second.rechecked
+          from safe_slate import guarded_rerank
+          request = dict(
+              request_id="release-smoke",
+              baseline_item_ids=[10, 11],
+              protected_count=1,
+              remove_positions=[1],
+              add_item_ids=[100],
+              reward_deltas=[0.5],
+              safety_mean_deltas=[0.1],
+              safety_variances=[0.0],
+              baseline_metric=0.5,
+              degradation_tolerance=0.01,
+              max_replacements=1,
+          )
+          approved = guarded_rerank(
+              **request,
+              support_ok=True,
+              uncertainty_valid=True,
+              distribution_shift_detected=False,
+              proposal_log_complete=True,
+          )
+          kept = guarded_rerank(**request)
+          assert approved.slate == (10, 100) and approved.oracle.rechecked
+          assert kept.slate == (10, 11) and kept.fallback and kept.oracle.rechecked
           """
-          subprocess.run([python, "-c", smoke], cwd=environment, check=True)
+          for version, base_python in (
+              ("3.11", os.environ["PYTHON_311"]),
+              ("3.15", os.environ["PYTHON_315"]),
+          ):
+              environment = Path(
+                  tempfile.mkdtemp(prefix=f"tommyslate-pypi-{version}-")
+              )
+              subprocess.run([base_python, "-m", "venv", environment], check=True)
+              python = environment / (
+                  "Scripts/python.exe" if os.name == "nt" else "bin/python"
+              )
+              subprocess.run(
+                  [
+                      python,
+                      "-m",
+                      "pip",
+                      "install",
+                      "--index-url",
+                      "https://pypi.org/simple/",
+                      "--retries",
+                      "10",
+                      "--no-deps",
+                      f"{os.environ['PACKAGE_NAME']}=={os.environ['PACKAGE_VERSION']}",
+                  ],
+                  check=True,
+              )
+              subprocess.run([python, "-m", "pip", "check"], check=True)
+              subprocess.run([python, "-c", smoke], cwd=environment, check=True)
           PY

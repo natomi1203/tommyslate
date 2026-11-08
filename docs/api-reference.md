@@ -1,8 +1,11 @@
 # Public API reference
 
-The stable API for the 0.3 series is the seven-symbol surface recorded in
-`library.json`. Other root-level exports support advanced evidence workflows
-but are provisional until they are added to that manifest.
+The proposed stable 1.x API is the seven-entrypoint surface recorded in
+`library.json`, plus the direct result types named there. Version 0.5.0 keeps
+the former root attributes working for migration, but they are no longer in
+`safe_slate.__all__`; import advanced support APIs from their documented
+submodules. The machine-readable signature and result-shape contract is
+[`stable-api-v1.json`](stable-api-v1.json).
 
 ## `optimize_slate`
 

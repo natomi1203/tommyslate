@@ -13,6 +13,28 @@ env:
   RUST_VERSION: "1.99.0"
 
 jobs:
+  python-compatibility:
+    name: Python compatibility (${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run the complete Python suite
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal
+          python -m pip install --disable-pip-version-check uv==0.13.1
+          uv sync --frozen --python "${{ matrix.python-version }}"
+          uv run maturin develop --release
+          uv run pytest
+
   msrv:
     runs-on: ubuntu-24.04
     steps:
@@ -62,6 +84,7 @@ jobs:
       - name: Verify Python API and types
         run: |
           uv run pytest
+          uv run python scripts/check_stable_api.py
           uv run mypy python/safe_slate --check-untyped-defs
           uv run python -m mypy.stubtest safe_slate._core
           uv run python -m compileall -q python/safe_slate scripts tests

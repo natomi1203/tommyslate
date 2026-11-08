@@ -1,6 +1,6 @@
 [package]
 name = "tommyslate"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2024"
 rust-version = "1.85"
 description = "TommySlate certified anytime slate construction with Python bindings"
