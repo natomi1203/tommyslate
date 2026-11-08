@@ -1,8 +1,8 @@
 # PyPI release evidence
 
-Assessment date: 2026-11-07 (Asia/Tokyo).
+Assessment date: 2026-11-08 (Asia/Tokyo).
 
-## TommySlate 0.4.1 Beta candidate
+## TommySlate 0.4.1 Beta production release
 
 Version 0.4.1 renames the GitHub repository to
 [`natomi1203/tommyslate`](https://github.com/natomi1203/tommyslate), matching
@@ -10,12 +10,41 @@ the PyPI distribution name, and changes the development-status classifier from
 Alpha to Beta. It does not change runtime behavior, the `safe_slate` import,
 the seven registered stable interfaces, or the release artifact policy.
 
-The new repository identity changes the GitHub OIDC `repository` claim. Before
-0.4.1 can be uploaded, the active TestPyPI and PyPI Trusted Publishers must be
-updated to repository `natomi1203/tommyslate`, workflow
-`safe-slate-release.yml`, and the existing protected `testpypi`/`pypi`
-environments. Version 0.4.0 remains the current production release until those
-gates and the full five-platform qualification complete.
+TommySlate 0.4.1 is published on
+[PyPI](https://pypi.org/project/tommyslate/0.4.1/) and
+[TestPyPI](https://test.pypi.org/project/tommyslate/0.4.1/). The active Trusted
+Publishers on both indexes are bound to repository `natomi1203/tommyslate`,
+workflow `safe-slate-release.yml`, and the owner-reviewed `testpypi`/`pypi`
+environments. Both environments are restricted to `main`; no long-lived index
+token was created.
+
+The frozen source is `ea5745472bc19a536bef3318a2357ff222a20c99`. A
+[publication-disabled run](https://github.com/natomi1203/tommyslate/actions/runs/42384926807)
+first built and smoke-tested five wheels and one sdist. The approved
+[TestPyPI qualification run](https://github.com/natomi1203/tommyslate/actions/runs/42385302459)
+published those six files through OIDC, matched every remote SHA-256 to the
+manifest, and reinstalled version 0.4.1 on all five target runners.
+
+The approved
+[production promotion run](https://github.com/natomi1203/tommyslate/actions/runs/42385996695)
+recovered the exact TestPyPI-qualified bundle without rebuilding, verified the
+source run and manifest, uploaded through OIDC, matched every production hash,
+and reinstalled from PyPI on Linux x86-64 and ARM64, macOS x86-64 and ARM64,
+and Windows x86-64.
+
+## TommySlate 0.4.1 production manifest
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `tommyslate-0.4.1-cp310-abi3-macosx_11_0_arm64.whl` | `f8cf367b7279cfc1508b4ce8f330cb9f2385e08c6d0199836ca9c1f5f1dea538` |
+| `tommyslate-0.4.1-cp310-abi3-macosx_11_0_x86_64.whl` | `442c8636be40f547ad9a001f8258a356193f58970f4921eb01b17645686326e2` |
+| `tommyslate-0.4.1-cp310-abi3-manylinux_2_28_aarch64.whl` | `61d8f281027eb7293135930aedca95781aade2cb353a5c0f310a6620b010aa56` |
+| `tommyslate-0.4.1-cp310-abi3-manylinux_2_28_x86_64.whl` | `8112ed49e2171ae7fa0555f0d40b783ef79e8553f23f40b98e8059c3a53978d6` |
+| `tommyslate-0.4.1-cp310-abi3-win_amd64.whl` | `23dbeb941b81d208f4dd3c7660b9186d3819f797f1b3c1ef7aef2dbec74bfb8b` |
+| `tommyslate-0.4.1.tar.gz` | `f4da82ccbaabcc2aa631b34f7b6bfe9e47a5e09c722e0edccdb4aa6b40b7e371` |
+
+Production PyPI, TestPyPI, the archived manifest, and the downloaded files all
+expose these exact six filenames and SHA-256 values.
 
 ## TommySlate 0.4.0 production release
 

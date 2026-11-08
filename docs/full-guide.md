@@ -19,9 +19,9 @@ TommySlate is a safer slate re-ranker for Python, backed by a Rust search core.
 It is built for teams that need more than a high-scoring list: they need a
 bounded search, an auditable decision, and a safe fallback.
 
-> **Release status:** TommySlate 0.4.1 is the Beta metadata and repository-name
-> alignment candidate. Version 0.4.0 remains the current production release
-> until the 0.4.1 artifact gates complete.
+> **Release status:** [TommySlate 0.4.1](https://pypi.org/project/tommyslate/0.4.1/)
+> is the current Beta production release. Its five wheels and one sdist match
+> the TestPyPI-qualified manifest byte for byte.
 
 ## Why use it?
 
