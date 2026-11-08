@@ -136,6 +136,10 @@ to overwrite an existing destination.
 
 ## Release and development
 
+Current release: [TommySlate 0.4.1 Beta](https://pypi.org/project/tommyslate/0.4.1/),
+qualified on [TestPyPI](https://test.pypi.org/project/tommyslate/0.4.1/) and
+promoted from the exact same six artifacts without rebuilding.
+
 TommySlate provides CPython stable-ABI wheels for Python 3.15 on Linux x86-64
 and ARM64, macOS x86-64 and ARM64, and Windows x86-64. Releases are qualified
 on TestPyPI, matched by SHA-256, and reinstalled on all five runners before
