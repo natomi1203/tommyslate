@@ -5,10 +5,16 @@
   "beta_version": "0.5.0",
   "release_candidate": {
     "version": "1.0.0rc1",
-    "source_sha": null,
-    "pypi_published_at": null,
-    "soak_not_before": null,
-    "api_snapshot_sha256": "ca13ac1e164c002e5c4203706862685c3c7346900c75fb989debd27583c71b26"
+    "source_sha": "1a55918a348e59ef74e7b46b2fdda88e1c8e75b2",
+    "pypi_published_at": "2026-11-08T13:06:13.756977Z",
+    "soak_not_before": "2026-12-08T13:06:13.756977Z",
+    "api_snapshot_sha256": "ca13ac1e164c002e5c4203706862685c3c7346900c75fb989debd27583c71b26",
+    "artifact_manifest_sha256": "d3237ac735296eda537a24c262234d933dee28f47132afe9efaa67e0eefd9d06",
+    "no_publish_run_url": "https://github.com/natomi1203/tommyslate/actions/runs/42481554610",
+    "testpypi_run_url": "https://github.com/natomi1203/tommyslate/actions/runs/42481873114",
+    "pypi_run_url": "https://github.com/natomi1203/tommyslate/actions/runs/42483220811",
+    "github_release_run_url": "https://github.com/natomi1203/tommyslate/actions/runs/42483657312",
+    "github_release_url": "https://github.com/natomi1203/tommyslate/releases/tag/tommyslate-v1.0.0rc1"
   },
   "external_validation": {
     "required": 1,

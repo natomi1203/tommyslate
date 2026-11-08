@@ -2,6 +2,48 @@
 
 Assessment date: 2026-11-08 (Asia/Tokyo).
 
+## TommySlate 1.0.0rc1 Beta release candidate
+
+TommySlate 1.0.0rc1 is published on
+[PyPI](https://pypi.org/project/tommyslate/1.0.0rc1/) and
+[TestPyPI](https://test.pypi.org/project/tommyslate/1.0.0rc1/). The frozen
+source is `1a55918a348e59ef74e7b46b2fdda88e1c8e75b2`. The RC exposes the
+final proposed 1.x root API but intentionally retains the Beta classifier.
+
+The [publication-disabled run](https://github.com/natomi1203/tommyslate/actions/runs/42481554610)
+validated five wheels and one sdist. The protected
+[TestPyPI run](https://github.com/natomi1203/tommyslate/actions/runs/42481873114)
+and [production run](https://github.com/natomi1203/tommyslate/actions/runs/42483220811)
+matched every remote filename and SHA-256 value, then installed the exact RC on
+Python 3.11 and 3.15 across all five runners. Transient Simple API cache misses
+were retried without rebuilding or re-uploading any artifact.
+
+The [signed finalization run](https://github.com/natomi1203/tommyslate/actions/runs/42483657312)
+created keyless-signed tag `tommyslate-v1.0.0rc1`, verified its Git signature,
+Rekor entry, workflow identity, and OIDC issuer, then published the
+[GitHub Prerelease](https://github.com/natomi1203/tommyslate/releases/tag/tommyslate-v1.0.0rc1).
+The Rekor transparency-log index is `3755793960`.
+
+The complete PyPI artifact set was available at
+`2026-11-08T13:06:13.756977Z`. The earliest stable-release time is therefore
+`2026-12-08T13:06:13.756977Z`, subject to all other gates remaining satisfied.
+
+## TommySlate 1.0.0rc1 production manifest
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `tommyslate-1.0.0rc1-cp310-abi3-macosx_11_0_arm64.whl` | `1cc7011f8328c530f75a451b1a22c91523a56a283c3662a6863e3a285c0026fd` |
+| `tommyslate-1.0.0rc1-cp310-abi3-macosx_11_0_x86_64.whl` | `89c569a22e03d1b4472a106d2d0ea4f1040fb7be0f5603242f86243656c78633` |
+| `tommyslate-1.0.0rc1-cp310-abi3-manylinux_2_28_aarch64.whl` | `2f4b256c6c91b1748efb6fb1a09e36b62d30348e332f0df5f9f95b95c4908904` |
+| `tommyslate-1.0.0rc1-cp310-abi3-manylinux_2_28_x86_64.whl` | `5526f9f2082e278424245e942d5bb35d241b9297301230d28f02bea62edc2178` |
+| `tommyslate-1.0.0rc1-cp310-abi3-win_amd64.whl` | `f19c172cc368587d2dc19c4f2f8a9885bf4d3a02fc9006c931d889be7b012055` |
+| `tommyslate-1.0.0rc1.tar.gz` | `fd31dd349d6f8faf03061ae447bfa0692fc57c1711e36b2370c3973c04885de7` |
+
+The release manifest itself has SHA-256
+`d3237ac735296eda537a24c262234d933dee28f47132afe9efaa67e0eefd9d06`.
+Production/Stable remains blocked until the RC completes its 30-day soak and
+one author-external integration is accepted.
+
 ## TommySlate 0.5.0 Beta production release
 
 TommySlate 0.5.0 is published on

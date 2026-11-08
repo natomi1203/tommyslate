@@ -11,8 +11,8 @@ uv add "tommyslate==1.0.0rc1"
 
 ## RC source and API contract
 
-- [ ] Freeze the exact 40-character merge commit selected from protected
-      `main` after the RC pull request merges.
+- [x] Freeze the exact protected `main` source commit:
+      `1a55918a348e59ef74e7b46b2fdda88e1c8e75b2`.
 - [x] Python metadata uses `1.0.0rc1`; Cargo metadata uses the equivalent
       SemVer `1.0.0-rc.1`; citation, manifest, lockfiles, and workflows agree.
 - [x] Metadata remains `Development Status :: 4 - Beta` and supports
@@ -23,20 +23,25 @@ uv add "tommyslate==1.0.0rc1"
 
 ## RC verification and publication
 
-- [ ] All required checks pass on the frozen source SHA, including Python
+- [x] All required checks pass on the frozen source SHA, including Python
       3.11–3.15, Rust 1.85 MSRV, Rust 1.99 tests/Clippy, mypy, stubtest,
       CodeQL, audits, and 100% Python/Rust coverage.
-- [ ] The publication-disabled five-platform matrix builds five wheels and one
-      sdist and verifies Python 3.11/3.15 installs on every runner.
-- [ ] The protected TestPyPI job publishes and verifies that exact manifest.
-- [ ] The protected PyPI job promotes the TestPyPI-qualified files without
-      rebuilding and verifies all filenames and SHA-256 values.
-- [ ] A keyless-signed `tommyslate-v1.0.0rc1` tag and GitHub Prerelease attach
-      the same six packages, manifest, `SHA256SUMS`, and SBOMs.
+- [x] The [publication-disabled matrix](https://github.com/natomi1203/tommyslate/actions/runs/42481554610)
+      builds five wheels and one sdist and verifies local installs.
+- [x] The protected [TestPyPI run](https://github.com/natomi1203/tommyslate/actions/runs/42481873114)
+      publishes the exact manifest, matches all hashes, and verifies Python
+      3.11/3.15 installs on every runner.
+- [x] The protected [PyPI run](https://github.com/natomi1203/tommyslate/actions/runs/42483220811)
+      promotes the TestPyPI-qualified files without rebuilding, matches all
+      hashes, and repeats every install.
+- [x] The [signed-release run](https://github.com/natomi1203/tommyslate/actions/runs/42483657312)
+      creates keyless-signed tag `tommyslate-v1.0.0rc1`; the
+      [GitHub Prerelease](https://github.com/natomi1203/tommyslate/releases/tag/tommyslate-v1.0.0rc1)
+      attaches the same six packages, manifest, `SHA256SUMS`, and SBOMs.
 
 ## Stable gates opened by RC publication
 
-- [ ] Record the RC source SHA, PyPI publication time, and UTC timestamp 30
+- [x] Record the RC source SHA, PyPI publication time, and UTC timestamp 30
       days later in `docs/stable-readiness.json`.
 - [ ] Accept one integration report from a non-author with clean install,
       stable-entrypoint execution, approved update, and baseline fallback.

@@ -84,12 +84,29 @@ def test_stable_readiness_is_fail_closed_during_rc_soak() -> None:
     assert readiness["phase"] == "release-candidate"
     assert readiness["beta_version"] == "0.5.0"
     assert readiness["release_candidate"]["version"] == "1.0.0rc1"
-    assert readiness["release_candidate"]["source_sha"] is None
-    assert readiness["release_candidate"]["pypi_published_at"] is None
-    assert readiness["release_candidate"]["soak_not_before"] is None
+    assert readiness["release_candidate"]["source_sha"] == (
+        "1a55918a348e59ef74e7b46b2fdda88e1c8e75b2"
+    )
+    assert readiness["release_candidate"]["pypi_published_at"] == (
+        "2026-11-08T13:06:13.756977Z"
+    )
+    assert readiness["release_candidate"]["soak_not_before"] == (
+        "2026-12-08T13:06:13.756977Z"
+    )
     assert readiness["release_candidate"]["api_snapshot_sha256"] == (
         "ca13ac1e164c002e5c4203706862685c3c7346900c75fb989debd27583c71b26"
     )
+    assert readiness["release_candidate"]["artifact_manifest_sha256"] == (
+        "d3237ac735296eda537a24c262234d933dee28f47132afe9efaa67e0eefd9d06"
+    )
+    for field in (
+        "no_publish_run_url",
+        "testpypi_run_url",
+        "pypi_run_url",
+        "github_release_run_url",
+        "github_release_url",
+    ):
+        assert readiness["release_candidate"][field].startswith("https://")
     assert readiness["external_validation"]["required"] == 1
     assert readiness["external_validation"]["accepted_issue_urls"] == []
     assert readiness["stable_release_ready"] is False
