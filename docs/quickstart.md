@@ -5,7 +5,7 @@ current ranking, candidates, business rules, and uncertainty estimates. It
 returns an approved update—or keeps the original list and records why.
 
 TommySlate is a decision layer, not a candidate generator or prediction model.
-It requires Python 3.15 or newer. The PyPI distribution is `tommyslate`; its
+It supports CPython 3.11–3.15. The PyPI distribution is `tommyslate`; its
 stable import remains `safe_slate`.
 
 Add the published distribution to a uv-managed project:

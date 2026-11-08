@@ -42,7 +42,7 @@ def _check_metadata(raw: bytes, *, version: str, artifact: str) -> None:
     expected = {
         "Name": PROJECT,
         "Version": version,
-        "Requires-Python": ">=3.15",
+        "Requires-Python": ">=3.11",
         "License-Expression": "Apache-2.0",
     }
     for field, value in expected.items():
@@ -70,7 +70,7 @@ def _only_name(names: list[str], suffix: str, *, artifact: str) -> str:
     return matches[0]
 
 
-def _check_wheel(path: Path, *, version: str, platform: str) -> None:
+def _check_wheel(path: Path, *, version: str, platform: str) -> bytes:
     expected_name = f"{DIST_PREFIX}-{version}-cp310-abi3-{platform}.whl"
     if path.name != expected_name:
         raise ArtifactError(f"unexpected wheel filename: {path.name}")
@@ -97,6 +97,7 @@ def _check_wheel(path: Path, *, version: str, platform: str) -> None:
         ]
         if len(sboms) != 1:
             raise ArtifactError(f"{path.name}: expected exactly one CycloneDX SBOM")
+        return archive.read(sboms[0])
 
 
 def _check_sdist(path: Path, *, version: str) -> None:
@@ -146,6 +147,7 @@ def verify_release(
 
     platforms: set[str] = set()
     wheel_prefix = f"{DIST_PREFIX}-{version}-cp310-abi3-"
+    wheel_sboms: dict[str, bytes] = {}
     for wheel in wheels:
         if not wheel.name.startswith(wheel_prefix) or not wheel.name.endswith(".whl"):
             raise ArtifactError(f"unexpected wheel tag: {wheel.name}")
@@ -153,7 +155,9 @@ def verify_release(
         if platform in platforms:
             raise ArtifactError(f"duplicate wheel platform: {platform}")
         platforms.add(platform)
-        _check_wheel(wheel, version=version, platform=platform)
+        wheel_sboms[f"{wheel.name}.cyclonedx.json"] = _check_wheel(
+            wheel, version=version, platform=platform
+        )
     if platforms != EXPECTED_WHEEL_PLATFORMS:
         raise ArtifactError(
             f"wheel platforms differ: expected {sorted(EXPECTED_WHEEL_PLATFORMS)}, "
@@ -169,19 +173,32 @@ def verify_release(
         }
         for path in sorted(archives, key=lambda item: item.name)
     ]
+    sboms = [
+        {
+            "filename": name,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "size": len(payload),
+        }
+        for name, payload in sorted(wheel_sboms.items())
+    ]
     manifest: dict[str, object] = {
         "schema_version": "1.0.0",
         "project": PROJECT,
         "version": version,
         "source_sha": source_sha,
         "files": files,
+        "sboms": sboms,
     }
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    sbom_dir = output_dir / "sboms"
     sums_path = output_dir / "SHA256SUMS"
     manifest_path = output_dir / "release-manifest.json"
-    if sums_path.exists() or manifest_path.exists():
+    if sums_path.exists() or manifest_path.exists() or sbom_dir.exists():
         raise ArtifactError("refusing to overwrite an existing release inventory")
+    sbom_dir.mkdir()
+    for name, payload in wheel_sboms.items():
+        (sbom_dir / name).write_bytes(payload)
     sums_path.write_text(
         "".join(f"{item['sha256']}  {item['filename']}\n" for item in files),
         encoding="utf-8",
@@ -196,7 +213,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("artifact_dir", type=Path)
     parser.add_argument("--source-sha", required=True)
-    parser.add_argument("--version", default="0.4.1")
+    parser.add_argument("--version", default="0.5.0")
     parser.add_argument("--output-dir", type=Path)
     args = parser.parse_args()
     output_dir = args.output_dir or args.artifact_dir

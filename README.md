@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/natomi1203/tommyslate/actions/workflows/ci.yml/badge.svg)](https://github.com/natomi1203/tommyslate/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/tommyslate.svg)](https://pypi.org/project/tommyslate/)
-[![Python 3.15](https://img.shields.io/badge/Python-3.15-3776AB.svg?logo=python&logoColor=white)](docs/compatibility.md)
+[![Python 3.11–3.15](https://img.shields.io/badge/Python-3.11–3.15-3776AB.svg?logo=python&logoColor=white)](docs/compatibility.md)
 [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 ## Improve a ranked list without risking the one that already works.
@@ -50,7 +50,7 @@ decision for audits, shadow evaluation, and offline policy evaluation (OPE).
 
 ## Install
 
-TommySlate requires Python 3.15. Add it to a uv-managed project:
+TommySlate supports CPython 3.11–3.15. Add it to a uv-managed project:
 
 ```bash
 uv add tommyslate
@@ -136,11 +136,11 @@ to overwrite an existing destination.
 
 ## Release and development
 
-Current release: [TommySlate 0.4.1 Beta](https://pypi.org/project/tommyslate/0.4.1/),
-qualified on [TestPyPI](https://test.pypi.org/project/tommyslate/0.4.1/) and
-promoted from the exact same six artifacts without rebuilding.
+Current published release: [TommySlate 0.4.1 Beta](https://pypi.org/project/tommyslate/0.4.1/).
+Version 0.5.0 expands the supported interpreter range and freezes the proposed
+1.x API before RC qualification.
 
-TommySlate provides CPython stable-ABI wheels for Python 3.15 on Linux x86-64
+TommySlate provides CPython stable-ABI wheels for Python 3.11–3.15 on Linux x86-64
 and ARM64, macOS x86-64 and ARM64, and Windows x86-64. Releases are qualified
 on TestPyPI, matched by SHA-256, and reinstalled on all five runners before
 production promotion.

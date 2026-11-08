@@ -1,0 +1,61 @@
+name: TommySlate RC external validation
+description: Report a clean third-party integration of the latest 1.0 release candidate.
+title: "[RC validation]: "
+labels:
+  - external-validation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach production traces, customer data, credentials, or other confidential information. The maintainer will add `external-validation:accepted` only after the report is verified.
+  - type: input
+    id: rc-version
+    attributes:
+      label: Exact RC version
+      description: For example, 1.0.0rc1.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS, CPU, and Python
+      description: Include OS version, CPU architecture, and Python version.
+    validations:
+      required: true
+  - type: checkboxes
+    id: clean-install
+    attributes:
+      label: Clean installation
+      options:
+        - label: I installed the exact RC into a new environment.
+          required: true
+  - type: dropdown
+    id: entrypoint
+    attributes:
+      label: Stable entrypoint exercised
+      options:
+        - optimize_slate
+        - optimize_replacements
+        - assess_serving_gates
+        - guarded_rerank
+        - guarded_candidate_pool_rerank
+        - audit_ope_readiness
+        - run_no_clobber_ope
+    validations:
+      required: true
+  - type: checkboxes
+    id: outcomes
+    attributes:
+      label: Outcomes observed
+      options:
+        - label: I observed an approved update.
+          required: true
+        - label: I observed an unchanged-baseline fallback.
+          required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Non-confidential integration notes
+      description: Describe the synthetic or non-sensitive test and any compatibility issue.
+    validations:
+      required: true

@@ -1,0 +1,242 @@
+name: Finalize signed TommySlate release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact source SHA already published to PyPI
+        required: true
+        type: string
+      testpypi_run_id:
+        description: Successful TestPyPI qualification run
+        required: true
+        type: string
+      pypi_run_id:
+        description: Successful production PyPI promotion run
+        required: true
+        type: string
+      prerelease:
+        description: Mark 0.5 and RC releases as GitHub prereleases
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  GITSIGN_VERSION: "0.17.1"
+  GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952ff833a845d57309dff76f7ba6600abae"
+  GITSIGN_IDENTITY: "https://github.com/natomi1203/tommyslate/.github/workflows/tommyslate-github-release.yml@refs/heads/main"
+  GITSIGN_ISSUER: "https://token.actions.githubusercontent.com"
+  PACKAGE_NAME: "tommyslate"
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      tag: ${{ steps.metadata.outputs.tag }}
+    steps:
+      - name: Validate immutable inputs
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TESTPYPI_RUN_ID: ${{ inputs.testpypi_run_id }}
+          PYPI_RUN_ID: ${{ inputs.pypi_run_id }}
+        run: |
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$TESTPYPI_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$PYPI_RUN_ID" =~ ^[0-9]+$ ]]
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - id: metadata
+        name: Confirm version and prerelease policy
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          version="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          cargo_version="$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
+          test "$version" = "$cargo_version"
+          [[ "$version" =~ ^(0\.5\.0|1\.0\.0rc[1-9][0-9]*|1\.0\.0)$ ]]
+          if [[ "$version" = "1.0.0" ]]; then
+            test "$PRERELEASE" = "false"
+          else
+            test "$PRERELEASE" = "true"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=tommyslate-v$version" >> "$GITHUB_OUTPUT"
+      - name: Verify publication workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TESTPYPI_RUN_ID: ${{ inputs.testpypi_run_id }}
+          PYPI_RUN_ID: ${{ inputs.pypi_run_id }}
+        run: |
+          for run_id in "$TESTPYPI_RUN_ID" "$PYPI_RUN_ID"; do
+            run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id")"
+            test "$(jq -r .status <<<"$run_json")" = "completed"
+            test "$(jq -r .conclusion <<<"$run_json")" = "success"
+            test "$(jq -r .event <<<"$run_json")" = "workflow_dispatch"
+            test "$(jq -r .head_branch <<<"$run_json")" = "main"
+            test "$(jq -r .head_sha <<<"$run_json")" = "$SOURCE_SHA"
+            test "$(jq -r .path <<<"$run_json")" = ".github/workflows/safe-slate-release.yml"
+          done
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: qualified-release-${{ inputs.source_sha }}
+          path: release
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.pypi_run_id }}
+      - name: Match artifacts, SBOMs, TestPyPI, and PyPI
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import urlopen
+
+          root = Path("release")
+          manifest = json.loads((root / "release-manifest.json").read_text())
+          if manifest.get("schema_version") != "1.0.0":
+              raise SystemExit("unsupported manifest schema")
+          if manifest.get("project") != os.environ["PACKAGE_NAME"]:
+              raise SystemExit("project mismatch")
+          if manifest.get("version") != os.environ["VERSION"]:
+              raise SystemExit("version mismatch")
+          if manifest.get("source_sha") != os.environ["SOURCE_SHA"]:
+              raise SystemExit("source SHA mismatch")
+
+          expected = {}
+          files = manifest.get("files")
+          if not isinstance(files, list) or len(files) != 6:
+              raise SystemExit("manifest must contain five wheels and one sdist")
+          for item in files:
+              path = root / "packages" / item["filename"]
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              if digest != item["sha256"] or path.stat().st_size != item["size"]:
+                  raise SystemExit(f"artifact mismatch: {path.name}")
+              expected[path.name] = digest
+
+          sboms = manifest.get("sboms")
+          if not isinstance(sboms, list) or len(sboms) != 5:
+              raise SystemExit("manifest must contain five extracted wheel SBOMs")
+          for item in sboms:
+              path = root / "sboms" / item["filename"]
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              if digest != item["sha256"] or path.stat().st_size != item["size"]:
+                  raise SystemExit(f"SBOM mismatch: {path.name}")
+
+          project = os.environ["PACKAGE_NAME"]
+          version = os.environ["VERSION"]
+          for base in ("https://test.pypi.org", "https://pypi.org"):
+              with urlopen(f"{base}/pypi/{project}/{version}/json", timeout=30) as response:
+                  payload = json.load(response)
+              remote = {
+                  item["filename"]: item["digests"]["sha256"]
+                  for item in payload["urls"]
+              }
+              if remote != expected:
+                  raise SystemExit(f"{base} differs from the frozen manifest")
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-finalization-${{ inputs.source_sha }}
+          path: release
+          if-no-files-found: error
+          retention-days: 14
+
+  finalize:
+    needs: verify-release
+    runs-on: ubuntu-24.04
+    environment:
+      name: release
+      url: https://github.com/${{ github.repository }}/releases/tag/${{ needs.verify-release.outputs.tag }}
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-finalization-${{ inputs.source_sha }}
+          path: release
+      - name: Install checksum-pinned gitsign
+        run: |
+          curl --fail --location --silent --show-error \
+            --output "$RUNNER_TEMP/gitsign" \
+            "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64"
+          echo "$GITSIGN_SHA256  $RUNNER_TEMP/gitsign" | sha256sum --check --strict
+          chmod 0755 "$RUNNER_TEMP/gitsign"
+          "$RUNNER_TEMP/gitsign" version
+      - name: Create and verify keyless signed tag
+        env:
+          GITSIGN_TOKEN_PROVIDER: github-actions
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TAG: ${{ needs.verify-release.outputs.tag }}
+          VERSION: ${{ needs.verify-release.outputs.version }}
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local gpg.x509.program "$RUNNER_TEMP/gitsign"
+          git config --local gpg.format x509
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+            test "$(git rev-list -n 1 "$TAG")" = "$SOURCE_SHA"
+          else
+            git tag --sign "$TAG" "$SOURCE_SHA" --message "TommySlate $VERSION"
+            git push origin "refs/tags/$TAG"
+          fi
+          "$RUNNER_TEMP/gitsign" verify \
+            --certificate-identity "$GITSIGN_IDENTITY" \
+            --certificate-oidc-issuer "$GITSIGN_ISSUER" \
+            "$TAG"
+      - name: Create no-clobber GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ inputs.prerelease }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TAG: ${{ needs.verify-release.outputs.tag }}
+          TESTPYPI_RUN_ID: ${{ inputs.testpypi_run_id }}
+          PYPI_RUN_ID: ${{ inputs.pypi_run_id }}
+          VERSION: ${{ needs.verify-release.outputs.version }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "GitHub Release already exists; refusing to overwrite it" >&2
+            exit 1
+          fi
+          cat > "$RUNNER_TEMP/release-notes.md" <<EOF
+          Frozen source: \`$SOURCE_SHA\`
+
+          - TestPyPI qualification: https://github.com/$GITHUB_REPOSITORY/actions/runs/$TESTPYPI_RUN_ID
+          - PyPI promotion: https://github.com/$GITHUB_REPOSITORY/actions/runs/$PYPI_RUN_ID
+          - Five wheels and one sdist match the attached SHA-256 manifest.
+          - The tag is keyless-signed with GitHub Actions OIDC and recorded in Sigstore Rekor.
+          EOF
+          release_flag="--latest"
+          if [[ "$PRERELEASE" = "true" ]]; then
+            release_flag="--prerelease"
+          fi
+          gh release create "$TAG" \
+            release/packages/* \
+            release/release-manifest.json \
+            release/SHA256SUMS \
+            release/sboms/* \
+            --title "TommySlate $VERSION" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            "$release_flag" \
+            --verify-tag

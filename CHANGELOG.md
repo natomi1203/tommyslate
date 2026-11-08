@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+
+- Expanded support to GIL-enabled CPython 3.11–3.15 while retaining one
+  `cp310-abi3` wheel per platform.
+- Froze the proposed 1.x surface at seven entrypoints and their direct result
+  types, with a machine-checked API snapshot covering signatures, defaults,
+  types, result attributes, dataclass fields, and serialized keys.
+- Limited `safe_slate.__all__` to the stable root surface. Former root
+  attributes remain available in 0.5.x but are deprecated in favor of their
+  documented submodule imports and will be removed in 1.0.0rc1.
+- Added Python 3.11–3.15 compatibility CI and Python 3.11/3.15 wheel install
+  tests on every release platform.
+
 ## 0.4.1
 
 - Renamed the GitHub repository to `natomi1203/tommyslate` so the repository

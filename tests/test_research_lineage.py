@@ -134,6 +134,9 @@ def test_research_documentation_local_links_resolve() -> None:
         ROOT / "SOFTWARE_PROVENANCE.md",
         ROOT / "docs" / "quickstart.md",
         ROOT / "docs" / "full-guide.md",
+        ROOT / "docs" / "api-reference.md",
+        ROOT / "docs" / "compatibility.md",
+        ROOT / "docs" / "1.0-migration.md",
         ROOT / "docs" / "research-integration.md",
     )
     for document in documents:

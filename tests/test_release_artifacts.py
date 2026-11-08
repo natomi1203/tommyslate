@@ -11,7 +11,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.4.1"
+VERSION = "0.5.0"
 SOURCE_SHA = "1" * 40
 
 SPEC = importlib.util.spec_from_file_location(
@@ -30,7 +30,7 @@ def _metadata() -> bytes:
         "Metadata-Version: 2.4\n"
         "Name: tommyslate\n"
         f"Version: {VERSION}\n"
-        "Requires-Python: >=3.15\n"
+        "Requires-Python: >=3.11\n"
         "License-Expression: Apache-2.0\n\n"
     ).encode()
 
@@ -86,6 +86,8 @@ def test_release_inventory_binds_six_artifacts_to_source_sha(tmp_path: Path) -> 
 
     assert manifest["source_sha"] == SOURCE_SHA
     assert len(manifest["files"]) == 6
+    assert len(manifest["sboms"]) == 5
+    assert len(list((tmp_path / "sboms").glob("*.cyclonedx.json"))) == 5
     written = json.loads((tmp_path / "release-manifest.json").read_text())
     assert written == manifest
     assert len((tmp_path / "SHA256SUMS").read_text().splitlines()) == 6

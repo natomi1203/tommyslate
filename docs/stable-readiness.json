@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "target_version": "1.0.0",
+  "phase": "beta",
+  "beta_version": "0.5.0",
+  "release_candidate": {
+    "version": null,
+    "source_sha": null,
+    "pypi_published_at": null,
+    "soak_not_before": null,
+    "api_snapshot_sha256": null
+  },
+  "external_validation": {
+    "required": 1,
+    "accepted_issue_urls": []
+  },
+  "blockers": {
+    "critical_or_high_vulnerabilities": null,
+    "p0_or_p1_issues": null,
+    "compatibility_blockers": null
+  },
+  "stable_release_ready": false
+}

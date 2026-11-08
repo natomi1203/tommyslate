@@ -4,10 +4,10 @@ build-backend = "maturin"
 
 [project]
 name = "tommyslate"
-version = "0.4.1"
+version = "0.5.0"
 description = "Safely improve ranked lists—or keep the original—with constraints, uncertainty checks, and an audit trail."
 readme = "README.md"
-requires-python = ">=3.15"
+requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = ["recommender-systems", "safe-optimization", "slate-ranking", "rust"]
@@ -16,6 +16,10 @@ classifiers = [
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: 3.15",
   "Programming Language :: Rust",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",

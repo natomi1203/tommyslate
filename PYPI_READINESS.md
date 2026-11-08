@@ -2,6 +2,16 @@
 
 Assessment date: 2026-11-08 (Asia/Tokyo).
 
+## TommySlate 0.5.0 Beta candidate
+
+Version 0.5.0 is not yet published. It expands supported GIL-enabled CPython
+versions to 3.11–3.15 and freezes the proposed 1.x API. Publication remains
+fail-closed until the protected `main` source SHA passes the publication-disabled
+matrix, TestPyPI OIDC qualification, exact-artifact PyPI promotion, ten
+cross-version installs per index, and keyless signed GitHub Prerelease
+finalization. Evidence URLs and hashes will be added only after those steps
+complete.
+
 ## TommySlate 0.4.1 Beta production release
 
 Version 0.4.1 renames the GitHub repository to
