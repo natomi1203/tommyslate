@@ -26,6 +26,7 @@ permissions:
 
 env:
   GITSIGN_VERSION: "0.17.1"
+  GITSIGN_ASSET_ID: "494536767"
   GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952ff833a845d57309dff76f7ba6600abae"
   GITSIGN_IDENTITY: "https://github.com/natomi1203/tommyslate/.github/workflows/tommyslate-github-release.yml@refs/heads/main"
   GITSIGN_ISSUER: "https://token.actions.githubusercontent.com"
@@ -177,10 +178,15 @@ jobs:
           name: release-finalization-${{ inputs.source_sha }}
           path: release
       - name: Install checksum-pinned gitsign
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           curl --fail --location --silent --show-error \
+            -H 'Accept: application/octet-stream' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
             --output "$RUNNER_TEMP/gitsign" \
-            "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64"
+            "https://api.github.com/repos/sigstore/gitsign/releases/assets/$GITSIGN_ASSET_ID"
           echo "$GITSIGN_SHA256  $RUNNER_TEMP/gitsign" | sha256sum --check --strict
           chmod 0755 "$RUNNER_TEMP/gitsign"
           "$RUNNER_TEMP/gitsign" version
