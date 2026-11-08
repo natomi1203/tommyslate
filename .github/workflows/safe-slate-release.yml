@@ -168,6 +168,7 @@ jobs:
         if: ${{ startsWith(matrix.platform.name, 'linux-') }}
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           MATURIN_ASSET_ID: ${{ matrix.platform.maturin-asset-id }}
           MATURIN_ASSET_SHA256: ${{ matrix.platform.maturin-asset-sha256 }}
           MANYLINUX_IMAGE: ${{ matrix.platform.manylinux-image }}
@@ -178,6 +179,7 @@ jobs:
           mkdir -p "$tool_dir"
           curl --fail --location --silent --show-error \
             -H 'Accept: application/octet-stream' \
+            -H "Authorization: Bearer $GH_TOKEN" \
             -H 'X-GitHub-Api-Version: 2022-11-28' \
             "https://api.github.com/repos/PyO3/maturin/releases/assets/$MATURIN_ASSET_ID" \
             --output "$tool_dir/maturin.tar.gz"
