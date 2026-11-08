@@ -157,7 +157,6 @@ jobs:
         if: matrix.platform.name == 'linux-aarch64'
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
           MATURIN_ASSET_ID: "688760471"
           MATURIN_ASSET_SHA256: 7b7321340805f90d65f138ba8831c789b706086153f1cfb97d915c5ac6ad6c4d
           MANYLINUX_IMAGE: quay.io/pypa/manylinux_2_28_aarch64@sha256:cb37f0d66c8a75abb93cf6085cad1f1427cd7208f0c0fc48359bb1eea9924f21
@@ -165,10 +164,11 @@ jobs:
           set -euo pipefail
           tool_dir="$RUNNER_TEMP/tommyslate-maturin"
           mkdir -p "$tool_dir"
-          gh api \
+          curl --fail --location --silent --show-error \
             -H 'Accept: application/octet-stream' \
-            "repos/PyO3/maturin/releases/assets/$MATURIN_ASSET_ID" \
-            > "$tool_dir/maturin.tar.gz"
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/PyO3/maturin/releases/assets/$MATURIN_ASSET_ID" \
+            --output "$tool_dir/maturin.tar.gz"
           printf '%s  %s\n' \
             "$MATURIN_ASSET_SHA256" \
             "$tool_dir/maturin.tar.gz" \
