@@ -130,9 +130,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: refs/heads/main
           fetch-depth: 1
           persist-credentials: false
+      - name: Confirm requested source is the current protected main
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
       - id: python311
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -142,6 +147,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Build wheel
+        if: matrix.platform.name != 'linux-aarch64'
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           command: build
@@ -152,6 +158,47 @@ jobs:
           args: >-
             --release --locked --compatibility pypi
             -i python3.15 --out dist
+      - name: Build wheel (Linux ARM64)
+        if: matrix.platform.name == 'linux-aarch64'
+        shell: bash
+        env:
+          MATURIN_ASSET_ID: "688760471"
+          MATURIN_ASSET_SHA256: 7b7321340805f90d65f138ba8831c789b706086153f1cfb97d915c5ac6ad6c4d
+          MANYLINUX_IMAGE: quay.io/pypa/manylinux_2_28_aarch64@sha256:cb37f0d66c8a75abb93cf6085cad1f1427cd7208f0c0fc48359bb1eea9924f21
+        run: |
+          set -euo pipefail
+          tool_dir="$RUNNER_TEMP/tommyslate-maturin"
+          mkdir -p "$tool_dir"
+          curl --fail --location --silent --show-error \
+            -H 'Accept: application/octet-stream' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/PyO3/maturin/releases/assets/$MATURIN_ASSET_ID" \
+            --output "$tool_dir/maturin.tar.gz"
+          printf '%s  %s\n' \
+            "$MATURIN_ASSET_SHA256" \
+            "$tool_dir/maturin.tar.gz" \
+            | sha256sum --check --strict
+          tar -xzf "$tool_dir/maturin.tar.gz" -C "$tool_dir" maturin
+          chmod 0555 "$tool_dir/maturin"
+
+          docker pull "$MANYLINUX_IMAGE"
+          docker run --rm \
+            --workdir /io \
+            --volume "$GITHUB_WORKSPACE:/io" \
+            --volume "$tool_dir/maturin:/usr/local/bin/maturin:ro" \
+            --env RUST_VERSION \
+            "$MANYLINUX_IMAGE" \
+            /bin/bash -euxo pipefail -c '
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs \
+                | sh -s -- -y --profile minimal --default-toolchain none
+              export PATH="/root/.cargo/bin:$PATH"
+              rustup toolchain install "$RUST_VERSION" --profile minimal
+              rustup default "$RUST_VERSION"
+              maturin build \
+                --release --locked --compatibility pypi \
+                -i /opt/python/cp315-cp315/bin/python3.15 \
+                --out dist
+            '
       - name: Install and smoke-test local wheel
         shell: bash
         env:
