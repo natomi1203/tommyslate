@@ -196,6 +196,7 @@ jobs:
             --volume "$GITHUB_WORKSPACE:/io" \
             --volume "$tool_dir/maturin:/usr/local/bin/maturin:ro" \
             --env RUST_VERSION \
+            --env RUST_TARGET \
             "$MANYLINUX_IMAGE" \
             /bin/bash -euxo pipefail -c '
               curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs \
