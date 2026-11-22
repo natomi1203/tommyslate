@@ -42,7 +42,7 @@ Issues = "https://github.com/natomi1203/tommyslate/issues"
 
 [dependency-groups]
 dev = [
-  "coverage==7.17.2",
+  "coverage==7.17.3",
   "maturin>=1.16,<2",
   "mypy>=2.4,<3",
   "pytest>=8.4,<10",
